@@ -4,6 +4,7 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { TASKS } from "@/lib/task-ai-matrix";
+import { generateWithRetry } from "@/lib/gemini-retry";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -36,7 +37,7 @@ Kurallar:
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const result = await model.generateContent([
+    const result = await generateWithRetry(model, [
       systemPrompt,
       `Kullanıcının isteği: "${rawInput}"`,
     ]);

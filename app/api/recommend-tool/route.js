@@ -4,6 +4,7 @@
 // Bu sayede modelin donmuş/eski bilgisine değil, o günkü arama sonuçlarına dayanıyoruz.
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateWithRetry } from "@/lib/gemini-retry";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -49,7 +50,7 @@ SADECE şu JSON formatında cevap ver, başka hiçbir metin, açıklama veya mar
       tools: [{ googleSearch: {} }],
     });
 
-    const result = await model.generateContent([
+    const result = await generateWithRetry(model, [
       systemPrompt,
       `Kullanıcının görevi: "${rawInput}"`,
     ]);

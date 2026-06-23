@@ -1,4 +1,9 @@
+// app/api/optimize-prompt/route.js
+// Kullanıcının kaba isteğini + cevapladığı soruları alır,
+// Gemini'ye "prompt mühendisi" rolü vererek hedef AI için optimize edilmiş bir prompt üretir.
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateWithRetry } from "@/lib/gemini-retry";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -14,6 +19,7 @@ export async function POST(request) {
       );
     }
 
+    // Kullanıcının cevapladığı ek soruları okunabilir bir metne çeviriyoruz.
     const answersText = Object.entries(answers || {})
       .filter(([, value]) => value && value.trim() !== "")
       .map(([key, value]) => `- ${key}: ${value}`)
@@ -44,15 +50,22 @@ Bu bilgilere göre ${targetAI} için optimize edilmiş prompt'u üret.`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const result = await model.generateContent([systemPrompt, userMessage]);
+    const result = await generateWithRetry(model, [systemPrompt, userMessage]);
 
     const optimizedPrompt = result.response.text();
 
     return Response.json({ optimizedPrompt });
   } catch (error) {
     console.error("optimize-prompt hatası:", error);
+    const isOverloaded =
+      error?.status === 503 ||
+      (typeof error?.message === "string" && error.message.includes("503"));
     return Response.json(
-      { error: "Prompt optimize edilirken bir hata oluştu." },
+      {
+        error: isOverloaded
+          ? "Şu an çok yoğunuz, lütfen birkaç saniye sonra tekrar dene."
+          : "Prompt optimize edilirken bir hata oluştu.",
+      },
       { status: 500 }
     );
   }
