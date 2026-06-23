@@ -8,6 +8,7 @@ import {
   PenTool,
   Search,
   Video,
+  Music,
   Sparkles,
   ArrowRight,
   Radio,
@@ -30,6 +31,7 @@ const ICONS = {
   PenTool,
   Search,
   Video,
+  Music,
   Sparkles,
 };
 
