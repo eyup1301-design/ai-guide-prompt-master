@@ -1,67 +1,55 @@
-// app/api/optimize-prompt/route.js
-// Kullanıcının kaba isteğini + cevapladığı soruları alır,
-// Gemini'ye "prompt mühendisi" rolü vererek hedef AI için optimize edilmiş bir prompt üretir.
+// app/api/classify-task/route.js
+// Kullanıcının kendi cümlesiyle yazdığı görevi alır, hangi hazır kategoriye
+// en yakın olduğunu Gemini'ye sorar. Hiçbiri uymuyorsa "other" döner.
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { TASKS } from "@/lib/task-ai-matrix";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+const VALID_IDS = TASKS.map((t) => t.id);
 
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { rawInput, taskLabel, targetAI, answers, language } = body;
+    const { rawInput } = body;
 
-    if (!rawInput || !targetAI) {
+    if (!rawInput || !rawInput.trim()) {
       return Response.json(
-        { error: "rawInput ve targetAI alanları gerekli." },
+        { error: "rawInput alanı gerekli." },
         { status: 400 }
       );
     }
 
-    // Kullanıcının cevapladığı ek soruları okunabilir bir metne çeviriyoruz.
-    const answersText = Object.entries(answers || {})
-      .filter(([, value]) => value && value.trim() !== "")
-      .map(([key, value]) => `- ${key}: ${value}`)
+    const categoryList = TASKS.filter((t) => !t.hidden)
+      .map((t) => `- ${t.id}: ${t.label} (${t.description})`)
       .join("\n");
 
-    const languageInstruction =
-      language === "tr"
-        ? "Optimize edilmiş prompt'u TÜRKÇE yaz, kullanıcının tercihi bu."
-        : language === "en"
-        ? "Optimize edilmiş prompt'u İNGİLİZCE yaz."
-        : "Optimize edilmiş prompt için en uygun dili sen seç: görsel/video üretim araçları (Midjourney, Runway vb.) için İngilizce kullan, kod/metin/araştırma gibi görevlerde Türkçe de uygun olabilir.";
+    const systemPrompt = `Sen bir görev sınıflandırıcısın. Kullanıcının yazdığı kaba isteği oku, aşağıdaki kategorilerden EN UYGUN olanın id'sini döndür. Hiçbiri uymuyorsa "other" döndür.
 
-    const systemPrompt = `Sen bir prompt mühendisisin. Görevin, kullanıcının kaba ve kısa isteğini, belirtilen hedef yapay zeka aracı için EN VERİMLİ şekilde çalışacak profesyonel bir prompt'a çevirmek.
+Kategoriler:
+${categoryList}
+- other: Yukarıdakilerin hiçbirine uymayan genel görevler
 
 Kurallar:
-- Sadece optimize edilmiş prompt'u döndür, başka hiçbir açıklama veya giriş cümlesi ekleme.
-- Hedef AI aracının güçlü yönlerine uygun terminoloji ve yapı kullan.
-- Kullanıcının verdiği ek detayları (varsa) prompt'a doğal şekilde işle.
-- Prompt, hedef AI aracına doğrudan yapıştırılabilecek şekilde net ve eksiksiz olmalı.
-- ${languageInstruction}`;
-
-    const userMessage = `Görev türü: ${taskLabel}
-Hedef AI: ${targetAI}
-Kullanıcının kaba isteği: "${rawInput}"
-${answersText ? `\nEk detaylar:\n${answersText}` : ""}
-
-Bu bilgilere göre ${targetAI} için optimize edilmiş prompt'u üret.`;
+- SADECE kategori id'sini döndür (örn. "code-generation"), başka hiçbir şey yazma, açıklama yapma, tırnak işareti kullanma.`;
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const result = await model.generateContent([
       systemPrompt,
-      userMessage,
+      `Kullanıcının isteği: "${rawInput}"`,
     ]);
 
-    const optimizedPrompt = result.response.text();
+    const rawAnswer = result.response.text().trim().toLowerCase();
 
-    return Response.json({ optimizedPrompt });
+    // Modelin döndürdüğü cevabı temizle, geçerli bir id mi kontrol et.
+    const matchedId = VALID_IDS.find((id) => rawAnswer.includes(id));
+
+    return Response.json({ taskId: matchedId ?? "other" });
   } catch (error) {
-    console.error("optimize-prompt hatası:", error);
-    return Response.json(
-      { error: "Prompt optimize edilirken bir hata oluştu." },
-      { status: 500 }
-    );
+    console.error("classify-task hatası:", error);
+    // Hata durumunda kullanıcıyı engellememek için güvenli varsayılana dön.
+    return Response.json({ taskId: "other" });
   }
 }

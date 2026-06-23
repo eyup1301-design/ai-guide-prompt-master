@@ -8,6 +8,7 @@ import {
   PenTool,
   Search,
   Video,
+  Sparkles,
   ArrowRight,
   Radio,
   Copy,
@@ -29,6 +30,7 @@ const ICONS = {
   PenTool,
   Search,
   Video,
+  Sparkles,
 };
 
 export default function Home() {
@@ -41,6 +43,9 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [language, setLanguage] = useState("auto");
   const [selectedToolKey, setSelectedToolKey] = useState(null);
+  const [freeText, setFreeText] = useState("");
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [classifyError, setClassifyError] = useState("");
 
   const LANGUAGE_OPTIONS = [
     { id: "auto", label: "otomatik" },
@@ -54,13 +59,36 @@ export default function Home() {
     candidates.find((c) => c.key === selectedToolKey) ?? candidates[0] ?? null;
   const questions = selectedTaskId ? getQuestions(selectedTaskId) : [];
 
-  function handleSelectTask(taskId) {
+  function handleSelectTask(taskId, prefillText = "") {
     setSelectedTaskId(taskId);
     setSelectedToolKey(null);
-    setRawInput("");
+    setRawInput(prefillText);
     setAnswers({});
     setOptimizedPrompt("");
     setError("");
+  }
+
+  async function handleClassify() {
+    if (!freeText.trim()) return;
+    setIsClassifying(true);
+    setClassifyError("");
+
+    try {
+      const response = await fetch("/api/classify-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawInput: freeText }),
+      });
+
+      const data = await response.json();
+      const taskId = data.taskId || "other";
+      handleSelectTask(taskId, freeText);
+      setFreeText("");
+    } catch (err) {
+      setClassifyError("Sınıflandırılamadı, lütfen hazır kategorilerden seç.");
+    } finally {
+      setIsClassifying(false);
+    }
   }
 
   function handleAnswerChange(questionId, value) {
@@ -150,8 +178,47 @@ export default function Home() {
             <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] px-3 pt-3 pb-2">
               01 — görevini seç
             </p>
+
+            {/* Serbest metin girişi */}
+            <div className="px-3 pb-3">
+              <label className="text-xs text-[#8B92A0] mb-1.5 block">
+                ya da görevini kendi cümlenle yaz
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={freeText}
+                  onChange={(e) => setFreeText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleClassify()}
+                  placeholder="örn: bana kısa bir oyun senaryosu yaz"
+                  className="flex-1 bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
+                />
+                <button
+                  onClick={handleClassify}
+                  disabled={isClassifying || !freeText.trim()}
+                  className="shrink-0 flex items-center justify-center w-10 rounded-lg bg-[#FF9F4A] text-[#14171C] hover:bg-[#FFB374] transition-colors disabled:opacity-50"
+                >
+                  {isClassifying ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <ArrowRight size={16} />
+                  )}
+                </button>
+              </div>
+              {classifyError && (
+                <p className="text-xs text-red-400 mt-1.5">{classifyError}</p>
+              )}
+              <div className="flex items-center gap-2 mt-4">
+                <div className="flex-1 h-px bg-[#2A2F38]" />
+                <span className="text-[10px] text-[#8B92A0] font-mono uppercase tracking-wider">
+                  veya hazırdan seç
+                </span>
+                <div className="flex-1 h-px bg-[#2A2F38]" />
+              </div>
+            </div>
+
             <div className="flex flex-col gap-1">
-              {TASKS.map((task) => {
+              {TASKS.filter((task) => !task.hidden).map((task) => {
                 const Icon = ICONS[task.icon];
                 const isActive = selectedTaskId === task.id;
                 return (
