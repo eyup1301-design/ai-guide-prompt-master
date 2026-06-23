@@ -1,0 +1,13 @@
+{
+  "name": "Wrompt — Doğru AI'yı seç, prompt'unu optimize et",
+  "short_name": "Wrompt",
+  "description": "Görevini seç, sana en uygun yapay zeka aracını önerelim, prompt'unu senin için optimize edelim.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#14171C",
+  "theme_color": "#14171C",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
