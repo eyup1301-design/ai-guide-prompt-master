@@ -48,6 +48,8 @@ export default function Home() {
   const [freeText, setFreeText] = useState("");
   const [isClassifying, setIsClassifying] = useState(false);
   const [classifyError, setClassifyError] = useState("");
+  const [dynamicCandidates, setDynamicCandidates] = useState([]);
+  const [isFetchingTool, setIsFetchingTool] = useState(false);
 
   const LANGUAGE_OPTIONS = [
     { id: "auto", label: "otomatik" },
@@ -56,7 +58,11 @@ export default function Home() {
   ];
 
   const selectedTask = TASKS.find((t) => t.id === selectedTaskId) ?? null;
-  const candidates = selectedTaskId ? getCandidates(selectedTaskId) : [];
+  const staticCandidates = selectedTaskId ? getCandidates(selectedTaskId) : [];
+  const candidates =
+    selectedTaskId === "other" && dynamicCandidates.length > 0
+      ? dynamicCandidates
+      : staticCandidates;
   const primaryTool =
     candidates.find((c) => c.key === selectedToolKey) ?? candidates[0] ?? null;
   const questions = selectedTaskId ? getQuestions(selectedTaskId) : [];
@@ -68,6 +74,34 @@ export default function Home() {
     setAnswers({});
     setOptimizedPrompt("");
     setError("");
+    setDynamicCandidates([]);
+  }
+
+  async function fetchDynamicTool(text) {
+    setIsFetchingTool(true);
+    try {
+      const response = await fetch("/api/recommend-tool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawInput: text }),
+      });
+      const data = await response.json();
+      if (response.ok && data.candidates?.length > 0) {
+        setDynamicCandidates(
+          data.candidates.map((c, i) => ({
+            ...c,
+            color: c.color || "#FF9F4A",
+            recommended: i === 0,
+          }))
+        );
+      }
+      // Başarısız olursa dynamicCandidates boş kalır, statik "other" havuzuna
+      // (Claude/GPT-4o/Gemini) otomatik düşer — kullanıcı boş ekran görmez.
+    } catch (err) {
+      // sessizce statik havuza düş
+    } finally {
+      setIsFetchingTool(false);
+    }
   }
 
   async function handleClassify() {
@@ -84,8 +118,13 @@ export default function Home() {
 
       const data = await response.json();
       const taskId = data.taskId || "other";
-      handleSelectTask(taskId, freeText);
+      const text = freeText;
+      handleSelectTask(taskId, text);
       setFreeText("");
+
+      if (taskId === "other") {
+        fetchDynamicTool(text);
+      }
     } catch (err) {
       setClassifyError("Sınıflandırılamadı, lütfen hazır kategorilerden seç.");
     } finally {
@@ -265,7 +304,7 @@ export default function Home() {
               02 — ai seç
             </p>
 
-            {!primaryTool && (
+            {!primaryTool && !isFetchingTool && (
               <div className="flex-1 flex items-center justify-center px-6 py-12 text-center">
                 <p className="text-sm text-[#8B92A0]">
                   Soldan bir görev seç, eşleşmeler burada belirecek.
@@ -273,13 +312,21 @@ export default function Home() {
               </div>
             )}
 
-            {primaryTool && (
+            {isFetchingTool && (
+              <div className="flex-1 flex items-center justify-center gap-2 px-6 py-12 text-center text-[#8B92A0]">
+                <Loader2 size={16} className="animate-spin" />
+                <p className="text-sm">güncel AI'lar aranıyor...</p>
+              </div>
+            )}
+
+            {primaryTool && !isFetchingTool && (
               <div className="px-3 pb-3 fade-rise" key={selectedTaskId}>
                 {/* Seçilebilir AI kartları */}
                 <div className="flex flex-col gap-1.5 mb-3">
                   {candidates.map((tool) => {
                     const isSelected = tool.key === primaryTool.key;
-                    const pricing = PRICING_LABELS[tool.pricing];
+                    const pricing =
+                      PRICING_LABELS[tool.pricing] || PRICING_LABELS.freemium;
                     return (
                       <button
                         key={tool.key}
