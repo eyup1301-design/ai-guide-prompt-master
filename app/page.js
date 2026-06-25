@@ -52,6 +52,9 @@ export default function Home() {
   const [dynamicCandidates, setDynamicCandidates] = useState([]);
   const [isFetchingTool, setIsFetchingTool] = useState(false);
   const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackCopied, setFeedbackCopied] = useState(false);
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
 
   const LANGUAGE_OPTIONS = [
     { id: "auto", label: "otomatik" },
@@ -106,11 +109,33 @@ export default function Home() {
     }
   }
 
-  function handleFeedbackSend() {
+  async function handleFeedbackSend() {
     if (!feedbackText.trim()) return;
-    const subject = encodeURIComponent("Wrompt Geri Bildirim");
-    const body = encodeURIComponent(feedbackText);
-    window.location.href = `mailto:wrompt.info@gmail.com?subject=${subject}&body=${body}`;
+    setIsSendingFeedback(true);
+
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: feedbackText }),
+      });
+
+      if (!response.ok) throw new Error("Kaydedilemedi");
+
+      setFeedbackSent(true);
+      setFeedbackText("");
+      setTimeout(() => setFeedbackSent(false), 5000);
+    } catch (err) {
+      // Kayıt başarısız olursa, mail yoluna düş (eski yedek yöntem).
+      const subject = encodeURIComponent("Wrompt Geri Bildirim");
+      const body = encodeURIComponent(feedbackText);
+      window.location.href = `mailto:wrompt.info@gmail.com?subject=${subject}&body=${body}`;
+      navigator.clipboard?.writeText(feedbackText);
+      setFeedbackCopied(true);
+      setTimeout(() => setFeedbackCopied(false), 5000);
+    } finally {
+      setIsSendingFeedback(false);
+    }
   }
 
   async function handleClassify() {
@@ -527,12 +552,33 @@ export default function Home() {
           />
           <button
             onClick={handleFeedbackSend}
-            disabled={!feedbackText.trim()}
+            disabled={!feedbackText.trim() || isSendingFeedback}
             className="mt-3 flex items-center justify-center gap-2 mx-auto text-sm font-medium bg-transparent border border-[#4ADEDE]/40 text-[#4ADEDE] rounded-lg px-5 py-2 hover:bg-[#4ADEDE]/10 transition-colors disabled:opacity-40"
           >
-            Gönder
-            <Send size={14} />
+            {isSendingFeedback ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                gönderiliyor...
+              </>
+            ) : (
+              <>
+                Gönder
+                <Send size={14} />
+              </>
+            )}
           </button>
+          {feedbackSent && (
+            <p className="text-xs text-[#4ADEDE] mt-3">
+              Teşekkürler! Geri bildirimin kaydedildi 🙌
+            </p>
+          )}
+          {feedbackCopied && (
+            <p className="text-xs text-[#4ADEDE] mt-3">
+              Metin kopyalandı! Mail uygulaman açılmadıysa, doğrudan{" "}
+              <span className="font-medium">wrompt.info@gmail.com</span>'a
+              yapıştırıp gönderebilirsin.
+            </p>
+          )}
         </div>
       </section>
     </main>
