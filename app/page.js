@@ -15,6 +15,7 @@ import {
   Copy,
   Check,
   Loader2,
+  Send,
 } from "lucide-react";
 import { TASKS, getCandidates, getQuestions } from "@/lib/task-ai-matrix";
 
@@ -50,6 +51,7 @@ export default function Home() {
   const [classifyError, setClassifyError] = useState("");
   const [dynamicCandidates, setDynamicCandidates] = useState([]);
   const [isFetchingTool, setIsFetchingTool] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
 
   const LANGUAGE_OPTIONS = [
     { id: "auto", label: "otomatik" },
@@ -102,6 +104,13 @@ export default function Home() {
     } finally {
       setIsFetchingTool(false);
     }
+  }
+
+  function handleFeedbackSend() {
+    if (!feedbackText.trim()) return;
+    const subject = encodeURIComponent("Wrompt Geri Bildirim");
+    const body = encodeURIComponent(feedbackText);
+    window.location.href = `mailto:wrompt.info@gmail.com?subject=${subject}&body=${body}`;
   }
 
   async function handleClassify() {
@@ -496,6 +505,34 @@ export default function Home() {
               </div>
             )}
           </div>
+        </div>
+      </section>
+
+      {/* ---------- GERİ BİLDİRİM ---------- */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+        <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl p-5 sm:p-6 max-w-xl mx-auto text-center">
+          <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-2">
+            geri bildirim
+          </p>
+          <p className="text-sm text-[#ECEEF1]/80 mb-4">
+            Bir şey çalışmadı mı, yoksa eklenmesini istediğin bir şey mi var?
+            Bize yaz, dinliyoruz.
+          </p>
+          <textarea
+            value={feedbackText}
+            onChange={(e) => setFeedbackText(e.target.value)}
+            placeholder="görüşünü buraya yaz..."
+            rows={3}
+            className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
+          />
+          <button
+            onClick={handleFeedbackSend}
+            disabled={!feedbackText.trim()}
+            className="mt-3 flex items-center justify-center gap-2 mx-auto text-sm font-medium bg-transparent border border-[#4ADEDE]/40 text-[#4ADEDE] rounded-lg px-5 py-2 hover:bg-[#4ADEDE]/10 transition-colors disabled:opacity-40"
+          >
+            Gönder
+            <Send size={14} />
+          </button>
         </div>
       </section>
     </main>
