@@ -18,6 +18,7 @@ import {
   Send,
 } from "lucide-react";
 import { TASKS, getCandidates, getQuestions } from "@/lib/task-ai-matrix";
+import AiFirstFlow from "@/components/AiFirstFlow";
 
 const PRICING_LABELS = {
   free: { label: "ücretsiz", className: "text-[#4ADEDE] border-[#4ADEDE]/30" },
@@ -38,6 +39,7 @@ const ICONS = {
 
 export default function Home() {
   const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [mode, setMode] = useState("task");
   const [rawInput, setRawInput] = useState("");
   const [answers, setAnswers] = useState({});
   const [optimizedPrompt, setOptimizedPrompt] = useState("");
@@ -247,6 +249,33 @@ export default function Home() {
 
       {/* ---------- SEÇİM KONSOLU ---------- */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+        {/* Mod geçişi */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setMode("task")}
+            className={`text-xs font-medium rounded-full px-4 py-2 border transition-colors ${
+              mode === "task"
+                ? "text-[#FF9F4A] bg-[#FF9F4A]/10 border-[#FF9F4A]/40"
+                : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+            }`}
+          >
+            Göreve göre
+          </button>
+          <button
+            onClick={() => setMode("ai")}
+            className={`text-xs font-medium rounded-full px-4 py-2 border transition-colors ${
+              mode === "ai"
+                ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
+                : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+            }`}
+          >
+            AI'ya göre
+          </button>
+        </div>
+
+        {mode === "ai" ? (
+          <AiFirstFlow />
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-[1fr_64px_1fr] gap-3 md:gap-0 items-stretch">
           {/* SOL: Görev Listesi */}
           <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl md:rounded-l-xl md:rounded-r-none p-2">
@@ -531,6 +560,7 @@ export default function Home() {
             )}
           </div>
         </div>
+        )}
       </section>
 
       {/* ---------- GERİ BİLDİRİM ---------- */}

@@ -1,0 +1,43 @@
+export default function sitemap() {
+  const baseUrl = "https://wrompt.com";
+  const now = new Date();
+
+  return [
+    {
+      url: baseUrl,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 1,
+    },
+    {
+      url: `${baseUrl}/rehberler`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/rehberler/gemini`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/rehberler/chatgpt`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/rehberler/claude`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/rehberler/midjourney`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+  ];
+}
