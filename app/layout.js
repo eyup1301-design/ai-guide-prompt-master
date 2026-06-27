@@ -50,6 +50,11 @@ export default function RootLayout({ children }) {
       <head>
         <script
           async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2017076941681302"
+          crossOrigin="anonymous"
+        ></script>
+        <script
+          async
           src="https://www.googletagmanager.com/gtag/js?id=G-HQTCP8CSXK"
         ></script>
         <script
