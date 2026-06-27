@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,8 +14,31 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
+  metadataBase: new URL("https://wrompt.com"),
   title: "Wrompt — Doğru AI'yı seç, prompt'unu optimize et",
   description: "Görevini seç, sana en uygun yapay zeka aracını önerelim, prompt'unu senin için optimize edelim.",
+  openGraph: {
+    title: "Wrompt — Doğru AI'yı seç, prompt'unu optimize et",
+    description: "Görevini seç, sana en uygun yapay zeka aracını önerelim, prompt'unu senin için optimize edelim.",
+    url: "https://wrompt.com",
+    siteName: "Wrompt",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Wrompt — Doğru AI'yı seç, prompt'unu optimize et",
+      },
+    ],
+    locale: "tr_TR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Wrompt — Doğru AI'yı seç, prompt'unu optimize et",
+    description: "Görevini seç, sana en uygun yapay zeka aracını önerelim, prompt'unu senin için optimize edelim.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -42,6 +66,7 @@ export default function RootLayout({ children }) {
       <body className="min-h-full flex flex-col bg-[#14171C]">
         <NavBar />
         {children}
+        <Footer />
       </body>
     </html>
   );
