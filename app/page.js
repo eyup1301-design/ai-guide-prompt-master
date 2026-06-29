@@ -60,7 +60,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [language, setLanguage] = useState("auto");
+  const [language, setLanguage] = useState("tr");
   const [selectedToolKey, setSelectedToolKey] = useState(null);
   const [freeText, setFreeText] = useState("");
   const [isClassifying, setIsClassifying] = useState(false);
@@ -83,7 +83,6 @@ export default function Home() {
   }, []);
 
   const LANGUAGE_OPTIONS = [
-    { id: "auto", label: "otomatik" },
     { id: "tr", label: "türkçe" },
     { id: "en", label: "ingilizce" },
   ];

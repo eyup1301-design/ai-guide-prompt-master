@@ -43,7 +43,7 @@ export default function InlinePromptBox({ targetAI }) {
           taskLabel: "Genel görev",
           targetAI,
           answers: {},
-          language: "auto",
+          language: "tr",
         }),
       });
       const data = await res.json();

@@ -86,7 +86,7 @@ export default function AiFirstFlow() {
           taskLabel: "Genel görev",
           targetAI: selectedAI?.name,
           answers,
-          language: "auto",
+          language: "tr",
         }),
       });
       const data = await res.json();

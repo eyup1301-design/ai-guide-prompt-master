@@ -60,7 +60,7 @@ export default function HomeEn() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [language, setLanguage] = useState("auto");
+  const [language, setLanguage] = useState("en");
   const [selectedToolKey, setSelectedToolKey] = useState(null);
   const [freeText, setFreeText] = useState("");
   const [isClassifying, setIsClassifying] = useState(false);
@@ -83,9 +83,8 @@ export default function HomeEn() {
   }, []);
 
   const LANGUAGE_OPTIONS = [
-    { id: "auto", label: "auto" },
-    { id: "tr", label: "turkish" },
     { id: "en", label: "english" },
+    { id: "tr", label: "turkish" },
   ];
 
   const selectedTask = TASKS.find((t) => t.id === selectedTaskId) ?? null;
