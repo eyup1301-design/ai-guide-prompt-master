@@ -31,7 +31,7 @@ export default function NavBar() {
             <Link
               href="/en"
               className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
-                !isEnglishGuides
+                !isEnglishGuides && !isHowItWorks
                   ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
                   : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
               }`}
@@ -64,7 +64,7 @@ export default function NavBar() {
             <Link
               href="/"
               className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
-                !isGuides
+                !isGuides && !isHowItWorks
                   ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
                   : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
               }`}
