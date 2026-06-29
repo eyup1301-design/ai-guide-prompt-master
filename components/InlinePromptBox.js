@@ -1,7 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Copy, Check, ArrowRight } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Copy, Check, ArrowRight, BookOpen } from "lucide-react";
+import { usePromptHistory } from "@/lib/usePromptHistory";
+import PromptHistoryPanel from "@/components/PromptHistoryPanel";
+
+function guideSlugFromAI(targetAI) {
+  if (!targetAI) return null;
+  const t = targetAI.toLowerCase();
+  if (t.includes("gpt") || t.includes("chatgpt")) return "chatgpt";
+  if (t.includes("claude")) return "claude";
+  if (t.includes("gemini")) return "gemini";
+  if (t.includes("midjourney")) return "midjourney";
+  return null;
+}
 
 export default function InlinePromptBox({ targetAI }) {
   const [input, setInput] = useState("");
@@ -9,6 +22,11 @@ export default function InlinePromptBox({ targetAI }) {
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const { history, addToHistory, removeFromHistory, clearHistory } =
+    usePromptHistory();
+
+  const slug = guideSlugFromAI(targetAI);
 
   async function handleGenerate() {
     if (!input.trim()) return;
@@ -31,6 +49,12 @@ export default function InlinePromptBox({ targetAI }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Bir hata oluştu.");
       setResult(data.optimizedPrompt);
+      addToHistory({
+        input: input.trim(),
+        result: data.optimizedPrompt,
+        targetAI,
+        taskLabel: "Genel görev",
+      });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -110,8 +134,39 @@ export default function InlinePromptBox({ targetAI }) {
           <p className="text-sm text-[#ECEEF1]/90 whitespace-pre-wrap leading-relaxed">
             {result}
           </p>
+
+          {slug && (
+            <div className="mt-4 pt-3 border-t border-[#2A2F38]">
+              <p className="text-[10px] font-mono uppercase tracking-wider text-[#8B92A0] mb-2">
+                Daha fazla öğren
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href={`/rehberler/${slug}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#4ADEDE] border border-[#4ADEDE]/30 bg-[#4ADEDE]/5 rounded-full px-3.5 py-1.5 hover:bg-[#4ADEDE]/15 transition-colors"
+                >
+                  <BookOpen size={12} />
+                  Türkçe {targetAI} Rehberi
+                </Link>
+                <Link
+                  href={`/en/guides/${slug}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#8B92A0] border border-[#2A2F38] bg-transparent rounded-full px-3.5 py-1.5 hover:bg-[#1C2128] hover:text-[#ECEEF1] transition-colors"
+                >
+                  <BookOpen size={12} />
+                  English Guide
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      <PromptHistoryPanel
+        history={history}
+        onRemove={removeFromHistory}
+        onClear={clearHistory}
+        lang="tr"
+      />
     </div>
   );
 }

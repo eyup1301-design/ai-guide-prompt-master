@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Code2,
   Image as ImageIcon,
@@ -16,9 +17,20 @@ import {
   Check,
   Loader2,
   Send,
+  BookOpen,
 } from "lucide-react";
 import { TASKS, getCandidates, getQuestions } from "@/lib/task-ai-matrix.en";
 import AiFirstFlowEn from "@/components/AiFirstFlowEn";
+import { usePromptHistory } from "@/lib/usePromptHistory";
+import PromptHistoryPanel from "@/components/PromptHistoryPanel";
+
+const TOOL_GUIDE_SLUG = {
+  "claude-sonnet": "claude",
+  "gpt-4o": "chatgpt",
+  midjourney: "midjourney",
+  "gemini-pro": "gemini",
+  "nano-banana": "gemini",
+};
 
 const PRICING_LABELS = {
   free: { label: "free", className: "text-[#4ADEDE] border-[#4ADEDE]/30" },
@@ -57,6 +69,8 @@ export default function HomeEn() {
   const [feedbackCopied, setFeedbackCopied] = useState(false);
   const [isSendingFeedback, setIsSendingFeedback] = useState(false);
   const [feedbackSent, setFeedbackSent] = useState(false);
+
+  const { history, addToHistory, removeFromHistory, clearHistory } = usePromptHistory();
 
   const LANGUAGE_OPTIONS = [
     { id: "auto", label: "auto" },
@@ -190,6 +204,12 @@ export default function HomeEn() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Something went wrong.");
       setOptimizedPrompt(data.optimizedPrompt);
+      addToHistory({
+        input: rawInput.trim(),
+        result: data.optimizedPrompt,
+        targetAI: primaryTool?.name,
+        taskLabel: selectedTask?.label,
+      });
     } catch (err) {
       setError(err.message || "Couldn't optimize the prompt, please try again.");
     } finally {
@@ -509,32 +529,65 @@ export default function HomeEn() {
                 </div>
 
                 {optimizedPrompt && (
-                  <div className="mt-4 rounded-lg border border-[#4ADEDE]/30 bg-[#14171C] p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-xs font-mono uppercase tracking-wider text-[#4ADEDE]">
-                        optimized prompt
+                  <>
+                    <div className="mt-4 rounded-lg border border-[#4ADEDE]/30 bg-[#14171C] p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-mono uppercase tracking-wider text-[#4ADEDE]">
+                          optimized prompt
+                        </p>
+                        <button
+                          onClick={handleCopy}
+                          className="flex items-center gap-1.5 text-xs text-[#8B92A0] hover:text-[#ECEEF1] transition-colors"
+                        >
+                          {copied ? (
+                            <>
+                              <Check size={14} className="text-[#4ADEDE]" />
+                              copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} />
+                              copy
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-sm text-[#ECEEF1]/90 leading-relaxed whitespace-pre-wrap">
+                        {optimizedPrompt}
                       </p>
-                      <button
-                        onClick={handleCopy}
-                        className="flex items-center gap-1.5 text-xs text-[#8B92A0] hover:text-[#ECEEF1] transition-colors"
-                      >
-                        {copied ? (
-                          <>
-                            <Check size={14} className="text-[#4ADEDE]" />
-                            copied
-                          </>
-                        ) : (
-                          <>
-                            <Copy size={14} />
-                            copy
-                          </>
-                        )}
-                      </button>
+
+                      {TOOL_GUIDE_SLUG[primaryTool?.key] && (
+                        <div className="mt-4 pt-3 border-t border-[#2A2F38]">
+                          <p className="text-[10px] font-mono uppercase tracking-wider text-[#8B92A0] mb-2">
+                            Learn more
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <Link
+                              href={`/en/guides/${TOOL_GUIDE_SLUG[primaryTool.key]}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#4ADEDE] border border-[#4ADEDE]/30 bg-[#4ADEDE]/5 rounded-full px-3.5 py-1.5 hover:bg-[#4ADEDE]/15 transition-colors"
+                            >
+                              <BookOpen size={12} />
+                              English {primaryTool.name} Guide
+                            </Link>
+                            <Link
+                              href={`/rehberler/${TOOL_GUIDE_SLUG[primaryTool.key]}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#8B92A0] border border-[#2A2F38] bg-transparent rounded-full px-3.5 py-1.5 hover:bg-[#1C2128] hover:text-[#ECEEF1] transition-colors"
+                            >
+                              <BookOpen size={12} />
+                              Türkçe Rehber
+                            </Link>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-[#ECEEF1]/90 leading-relaxed whitespace-pre-wrap">
-                      {optimizedPrompt}
-                    </p>
-                  </div>
+
+                    <PromptHistoryPanel
+                      history={history}
+                      onRemove={removeFromHistory}
+                      onClear={clearHistory}
+                      lang="en"
+                    />
+                  </>
                 )}
               </div>
             )}
