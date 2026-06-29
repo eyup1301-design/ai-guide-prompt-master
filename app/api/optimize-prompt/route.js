@@ -30,7 +30,7 @@ export async function POST(request) {
         ? "Optimize edilmiş prompt'u TÜRKÇE yaz, kullanıcının tercihi bu."
         : language === "en"
         ? "Optimize edilmiş prompt'u İNGİLİZCE yaz."
-        : "Optimize edilmiş prompt için en uygun dili sen seç: görsel/video üretim araçları (Midjourney, Runway vb.) için İngilizce kullan, kod/metin/araştırma gibi görevlerde Türkçe de uygun olabilir.";
+        : "Kullanıcının yazdığı dilin aynısını kullan: Türkçe yazdıysa Türkçe, İngilizce yazdıysa İngilizce üret. İstisna: hedef araç görsel veya video üretici ise (Midjourney, Runway, Kling, Veo vb.) her zaman İNGİLİZCE yaz çünkü bu araçlar İngilizce prompt'larla çok daha iyi sonuç verir.";
 
     const systemPrompt = `Sen bir prompt mühendisisin. Görevin, kullanıcının kaba ve kısa isteğini, belirtilen hedef yapay zeka aracı için EN VERİMLİ şekilde çalışacak profesyonel bir prompt'a çevirmek.
 
