@@ -157,6 +157,7 @@ export default function Home() {
 
   async function handleClassify(overrideText) {
     const text = overrideText ?? freeText;
+    const fromHero = overrideText !== undefined;
     if (!text.trim()) return;
     setIsClassifying(true);
     setClassifyError("");
@@ -177,7 +178,14 @@ export default function Home() {
         fetchDynamicTool(text);
       }
     } catch (err) {
-      setClassifyError("Sınıflandırılamadı, lütfen hazır kategorilerden seç.");
+      if (fromHero) {
+        // Hero'dan gelince hata gösterme, sessizce "other" kategorisine düş
+        handleSelectTask("other", text);
+        setFreeText("");
+        fetchDynamicTool(text);
+      } else {
+        setClassifyError("Sınıflandırılamadı, lütfen hazır kategorilerden seç.");
+      }
     } finally {
       setIsClassifying(false);
     }

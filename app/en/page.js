@@ -126,6 +126,7 @@ export default function HomeEn() {
 
   async function handleClassify(overrideText) {
     const text = overrideText ?? freeText;
+    const fromHero = overrideText !== undefined;
     if (!text.trim()) return;
     setIsClassifying(true);
     setClassifyError("");
@@ -146,7 +147,13 @@ export default function HomeEn() {
         fetchDynamicTool(text);
       }
     } catch (err) {
-      setClassifyError("Couldn't classify, please pick from the list below.");
+      if (fromHero) {
+        handleSelectTask("other", text);
+        setFreeText("");
+        fetchDynamicTool(text);
+      } else {
+        setClassifyError("Couldn't classify, please pick from the list below.");
+      }
     } finally {
       setIsClassifying(false);
     }
