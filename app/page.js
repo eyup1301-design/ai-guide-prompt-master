@@ -50,6 +50,7 @@ const ICONS = {
 };
 
 export default function Home() {
+  const [heroInput, setHeroInput] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [mode, setMode] = useState("task");
   const [rawInput, setRawInput] = useState("");
@@ -265,10 +266,54 @@ export default function Home() {
           Görevini seç. Sistem sana en uygun AI aracını ve onun için
           özel hazırlanmış altın ipuçlarını canlı olarak eşleştirsin.
         </p>
+
+        {/* Hızlı başlangıç kutusu */}
+        <div className="mt-8 max-w-2xl">
+          <div className="flex gap-3 items-start">
+            <textarea
+              value={heroInput}
+              onChange={(e) => setHeroInput(e.target.value.slice(0, 600))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  if (heroInput.trim()) {
+                    setFreeText(heroInput);
+                    setHeroInput("");
+                    setTimeout(() => {
+                      document.getElementById("konsol")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      handleClassify();
+                    }, 50);
+                  }
+                }
+              }}
+              placeholder="Ne yapmak istiyorsun? Yaz, gerisini halledelim..."
+              rows={2}
+              className="flex-1 bg-[#1C2128] border border-[#2A2F38] rounded-xl px-4 py-3 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
+            />
+            <button
+              onClick={() => {
+                if (!heroInput.trim()) return;
+                setFreeText(heroInput);
+                setHeroInput("");
+                setTimeout(() => {
+                  document.getElementById("konsol")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  handleClassify();
+                }, 50);
+              }}
+              disabled={!heroInput.trim()}
+              className="shrink-0 flex items-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-xl px-5 py-3 hover:bg-[#FFB374] transition-colors disabled:opacity-40"
+            >
+              Devam
+              <ArrowRight size={16} />
+            </button>
+          </div>
+          <p className="text-xs text-[#8B92A0]/50 mt-2">
+            Ya da aşağıdan görev ve AI seçimini kendin yap.
+          </p>
+        </div>
       </section>
 
       {/* ---------- SEÇİM KONSOLU ---------- */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+      <section id="konsol" className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
         {/* Mod geçişi */}
         <div className="flex gap-2 mb-4">
           <button

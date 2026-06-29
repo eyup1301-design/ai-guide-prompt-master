@@ -50,6 +50,7 @@ const ICONS = {
 };
 
 export default function HomeEn() {
+  const [heroInput, setHeroInput] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState(null);
   const [mode, setMode] = useState("task");
   const [rawInput, setRawInput] = useState("");
@@ -251,13 +252,57 @@ export default function HomeEn() {
           <span className="text-[#FF9F4A]">optimize your prompt.</span>
         </h1>
         <p className="mt-4 sm:mt-5 text-base sm:text-lg text-[#8B92A0] max-w-xl">
-          Choose your task. We'll match you with the best AI tool and craft a
+          Choose your task. We&apos;ll match you with the best AI tool and craft a
           ready-to-use prompt for it, in real time.
         </p>
+
+        {/* Quick start box */}
+        <div className="mt-8 max-w-2xl">
+          <div className="flex gap-3 items-start">
+            <textarea
+              value={heroInput}
+              onChange={(e) => setHeroInput(e.target.value.slice(0, 600))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  if (heroInput.trim()) {
+                    setFreeText(heroInput);
+                    setHeroInput("");
+                    setTimeout(() => {
+                      document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      handleClassify();
+                    }, 50);
+                  }
+                }
+              }}
+              placeholder="What do you want to do? Type it, we'll handle the rest..."
+              rows={2}
+              className="flex-1 bg-[#1C2128] border border-[#2A2F38] rounded-xl px-4 py-3 text-sm text-[#ECEEF1] placeholder:text-[#4ADEDE]/40 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
+            />
+            <button
+              onClick={() => {
+                if (!heroInput.trim()) return;
+                setFreeText(heroInput);
+                setHeroInput("");
+                setTimeout(() => {
+                  document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  handleClassify();
+                }, 50);
+              }}
+              disabled={!heroInput.trim()}
+              className="shrink-0 flex items-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-xl px-5 py-3 hover:bg-[#FFB374] transition-colors disabled:opacity-40"
+            >
+              Continue
+              <ArrowRight size={16} />
+            </button>
+          </div>
+          <p className="text-xs text-[#8B92A0]/50 mt-2">
+            Or pick your task and AI manually below.
+          </p>
+        </div>
       </section>
 
       {/* ---------- CONSOLE ---------- */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+      <section id="console" className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
         <div className="flex gap-2 mb-4">
           <button
             onClick={() => setMode("task")}
