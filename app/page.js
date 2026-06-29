@@ -651,8 +651,14 @@ export default function Home() {
             onChange={(e) => setFeedbackText(e.target.value)}
             placeholder="görüşünü buraya yaz..."
             rows={3}
+            maxLength={500}
             className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
           />
+          <div className="flex justify-end mt-1">
+            <span className={`text-[10px] font-mono ${feedbackText.length >= 490 ? "text-red-400" : feedbackText.length >= 400 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+              {feedbackText.length}/500
+            </span>
+          </div>
           <button
             onClick={handleFeedbackSend}
             disabled={!feedbackText.trim() || isSendingFeedback}
