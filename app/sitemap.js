@@ -10,6 +10,12 @@ export default function sitemap() {
       priority: 1,
     },
     {
+      url: `${baseUrl}/en`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/rehberler`,
       lastModified: now,
       changeFrequency: "weekly",
