@@ -8,6 +8,7 @@ export default function NavBar() {
   const isEnglish = pathname?.startsWith("/en");
   const isEnglishGuides = isEnglish && pathname?.startsWith("/en/guides");
   const isGuides = !isEnglish && pathname?.startsWith("/rehberler");
+  const isHowItWorks = pathname === "/nasil-calisir" || pathname === "/en/how-it-works";
 
   return (
     <nav className="bg-[#14171C] border-b border-[#2A2F38]">
@@ -47,6 +48,16 @@ export default function NavBar() {
             >
               AI Guides
             </Link>
+            <Link
+              href="/en/how-it-works"
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
+                isHowItWorks
+                  ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
+                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+              }`}
+            >
+              How It Works
+            </Link>
           </>
         ) : (
           <>
@@ -70,6 +81,16 @@ export default function NavBar() {
               }`}
             >
               Yapay Zeka Rehberleri
+            </Link>
+            <Link
+              href="/nasil-calisir"
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
+                isHowItWorks
+                  ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
+                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+              }`}
+            >
+              Nasıl Çalışır?
             </Link>
           </>
         )}
