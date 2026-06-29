@@ -9,6 +9,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { AI_TOOLS, getQuestions } from "@/lib/task-ai-matrix.en";
+import { usePromptHistory } from "@/lib/usePromptHistory";
+import PromptHistoryPanel from "@/components/PromptHistoryPanel";
 
 const PRICING_LABELS = {
   free: { label: "free", className: "text-[#4ADEDE] border-[#4ADEDE]/30" },
@@ -27,6 +29,8 @@ export default function AiFirstFlowEn() {
   const [result, setResult] = useState("");
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const { history, addToHistory, removeFromHistory, clearHistory } = usePromptHistory();
 
   const aiList = Object.entries(AI_TOOLS);
   const selectedAI = selectedAIKey ? AI_TOOLS[selectedAIKey] : null;
@@ -86,6 +90,12 @@ export default function AiFirstFlowEn() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong.");
       setResult(data.optimizedPrompt);
+      addToHistory({
+        input: rawInput.trim(),
+        result: data.optimizedPrompt,
+        targetAI: selectedAI?.name,
+        taskLabel: "General task",
+      });
     } catch (e) {
       setError(e.message);
     } finally {
@@ -252,6 +262,13 @@ export default function AiFirstFlowEn() {
               </p>
             </div>
           )}
+
+          <PromptHistoryPanel
+            history={history}
+            onRemove={removeFromHistory}
+            onClear={clearHistory}
+            lang="en"
+          />
         </div>
       )}
     </div>
