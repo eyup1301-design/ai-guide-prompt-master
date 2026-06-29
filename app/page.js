@@ -318,6 +318,7 @@ export default function Home() {
                   maxLength={600}
                   className="flex-1 bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
                 />
+
                 <button
                   onClick={handleClassify}
                   disabled={isClassifying || !freeText.trim()}
@@ -329,6 +330,11 @@ export default function Home() {
                     <ArrowRight size={16} />
                   )}
                 </button>
+              </div>
+              <div className="flex justify-end mt-1">
+                <span className={`text-[10px] font-mono ${freeText.length >= 580 ? "text-red-400" : freeText.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                  {freeText.length}/600
+                </span>
               </div>
               {classifyError && (
                 <p className="text-xs text-red-400 mt-1.5">{classifyError}</p>
@@ -529,6 +535,11 @@ export default function Home() {
                         maxLength={200}
                         className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
                       />
+                      <div className="flex justify-end mt-0.5">
+                        <span className={`text-[10px] font-mono ${(answers[q.id] || "").length >= 190 ? "text-red-400" : (answers[q.id] || "").length >= 160 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                          {(answers[q.id] || "").length}/200
+                        </span>
+                      </div>
                     </div>
                   ))}
 

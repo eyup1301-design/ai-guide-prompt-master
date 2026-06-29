@@ -197,6 +197,11 @@ export default function AiFirstFlowEn() {
                       maxLength={200}
                       className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
                     />
+                    <div className="flex justify-end mt-0.5">
+                      <span className={`text-[10px] font-mono ${(answers[q.id] || "").length >= 190 ? "text-red-400" : (answers[q.id] || "").length >= 160 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                        {(answers[q.id] || "").length}/200
+                      </span>
+                    </div>
                   </div>
                 ))}
 
