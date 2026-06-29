@@ -16,7 +16,7 @@ const redis = new Redis({
 
 const ratelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(20, "1 d"),
+  limiter: Ratelimit.fixedWindow(50, "1 d"),
   prefix: "wrompt-ratelimit",
 });
 
@@ -85,6 +85,11 @@ export async function middleware(request) {
   }
 
   // ---------- API route'ları: günlük kullanım limiti ----------
+
+  // Admin cookie varsa limit atla
+  const isAdmin = request.cookies.get("wrompt_admin")?.value === "1";
+  if (isAdmin) return NextResponse.next();
+
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     request.headers.get("x-real-ip") ||
