@@ -23,6 +23,7 @@ import { TASKS, getCandidates, getQuestions } from "@/lib/task-ai-matrix.en";
 import AiFirstFlowEn from "@/components/AiFirstFlowEn";
 import { usePromptHistory } from "@/lib/usePromptHistory";
 import PromptHistoryPanel from "@/components/PromptHistoryPanel";
+import { useEffect } from "react";
 
 const TOOL_GUIDE_SLUG = {
   "claude-sonnet": "claude",
@@ -72,6 +73,14 @@ export default function HomeEn() {
   const [feedbackSent, setFeedbackSent] = useState(false);
 
   const { history, addToHistory, removeFromHistory, clearHistory } = usePromptHistory();
+  const [promptCount, setPromptCount] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/prompt-count")
+      .then((r) => r.json())
+      .then((d) => setPromptCount(d.count))
+      .catch(() => {});
+  }, []);
 
   const LANGUAGE_OPTIONS = [
     { id: "auto", label: "auto" },
@@ -262,6 +271,16 @@ export default function HomeEn() {
           Choose your task. We&apos;ll match you with the best AI tool and craft a
           ready-to-use prompt for it, in real time.
         </p>
+
+        {promptCount !== null && (
+          <div className="mt-6 inline-flex items-center gap-2 text-xs font-mono text-[#8B92A0] bg-[#1C2128] border border-[#2A2F38] rounded-full px-4 py-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4ADEDE] animate-pulse inline-block" />
+            <span>
+              <span className="text-[#ECEEF1] font-semibold">{promptCount.toLocaleString("en-US")}+</span>
+              {" "}prompts optimized
+            </span>
+          </div>
+        )}
 
         {/* Quick start box */}
         <div className="mt-8 max-w-2xl">

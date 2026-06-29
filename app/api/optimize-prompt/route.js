@@ -4,6 +4,12 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { generateWithRetry } from "@/lib/gemini-retry";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -53,6 +59,16 @@ Bu bilgilere göre ${targetAI} için optimize edilmiş prompt'u üret.`;
     const result = await generateWithRetry(model, [systemPrompt, userMessage]);
 
     const optimizedPrompt = result.response.text();
+
+    // Toplam prompt sayacını artır (başlangıç değeri 500)
+    try {
+      const current = await redis.get("wrompt-total-prompts");
+      if (current === null) {
+        await redis.set("wrompt-total-prompts", 501);
+      } else {
+        await redis.incr("wrompt-total-prompts");
+      }
+    } catch {}
 
     return Response.json({ optimizedPrompt });
   } catch (error) {
