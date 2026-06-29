@@ -124,8 +124,9 @@ export default function HomeEn() {
     }
   }
 
-  async function handleClassify() {
-    if (!freeText.trim()) return;
+  async function handleClassify(overrideText) {
+    const text = overrideText ?? freeText;
+    if (!text.trim()) return;
     setIsClassifying(true);
     setClassifyError("");
 
@@ -133,12 +134,11 @@ export default function HomeEn() {
       const response = await fetch("/api/classify-task", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawInput: freeText }),
+        body: JSON.stringify({ rawInput: text }),
       });
 
       const data = await response.json();
       const taskId = data.taskId || "other";
-      const text = freeText;
       handleSelectTask(taskId, text);
       setFreeText("");
 
@@ -265,12 +265,10 @@ export default function HomeEn() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   if (heroInput.trim()) {
-                    setFreeText(heroInput);
+                    const text = heroInput;
                     setHeroInput("");
-                    setTimeout(() => {
-                      document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                      handleClassify();
-                    }, 50);
+                    document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    handleClassify(text);
                   }
                 }
               }}
@@ -281,12 +279,10 @@ export default function HomeEn() {
             <button
               onClick={() => {
                 if (!heroInput.trim()) return;
-                setFreeText(heroInput);
+                const text = heroInput;
                 setHeroInput("");
-                setTimeout(() => {
-                  document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  handleClassify();
-                }, 50);
+                document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                handleClassify(text);
               }}
               disabled={!heroInput.trim()}
               className="shrink-0 flex items-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-xl px-5 py-3 hover:bg-[#FFB374] transition-colors disabled:opacity-40"
