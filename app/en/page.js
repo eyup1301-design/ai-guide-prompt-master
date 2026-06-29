@@ -90,7 +90,7 @@ export default function HomeEn() {
       const response = await fetch("/api/recommend-tool", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawInput: text }),
+        body: JSON.stringify({ rawInput: text, language: "en" }),
       });
       const data = await response.json();
       if (response.ok && data.candidates?.length > 0) {

@@ -11,7 +11,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { rawInput } = body;
+    const { rawInput, language } = body;
 
     if (!rawInput || !rawInput.trim()) {
       return Response.json(
@@ -20,13 +20,34 @@ export async function POST(request) {
       );
     }
 
-    const today = new Date().toLocaleDateString("tr-TR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    const outputLang = language === "en" ? "en" : "tr";
 
-    const systemPrompt = `Bugünün tarihi: ${today}. Sen bir AI araç danışmanısın. Kullanıcının görevi için, GÜNCEL WEB ARAMASI yaparak şu an piyasada gerçekten var olan, çalışan 1-2 yapay zeka aracını öner (biri varsa ücretsiz/freemium, biri ücretli olabilir).
+    const today = new Date().toLocaleDateString(
+      outputLang === "en" ? "en-US" : "tr-TR",
+      { day: "numeric", month: "long", year: "numeric" }
+    );
+
+    const systemPrompt =
+      outputLang === "en"
+        ? `Today's date: ${today}. You are an AI tool advisor. For the user's task, use REAL-TIME WEB SEARCH to recommend 1-2 AI tools that genuinely exist and work right now (ideally one free/freemium and one paid option).
+
+Do NOT recommend tools that have been shut down, are no longer accessible, or are outdated. Search first, then answer.
+
+Respond ONLY in this JSON format, no other text, explanation, or markdown:
+{
+  "candidates": [
+    {
+      "key": "short-slug",
+      "name": "Tool Name",
+      "vendor": "Company Name",
+      "pricing": "free" | "freemium" | "paid",
+      "priceNote": "short pricing note, in English",
+      "strengths": "short strengths description, in English",
+      "goldenTip": "a short usage tip for this tool, in English"
+    }
+  ]
+}`
+        : `Bugünün tarihi: ${today}. Sen bir AI araç danışmanısın. Kullanıcının görevi için, GÜNCEL WEB ARAMASI yaparak şu an piyasada gerçekten var olan, çalışan 1-2 yapay zeka aracını öner (biri varsa ücretsiz/freemium, biri ücretli olabilir).
 
 Kapanmış, artık erişilemeyen veya güncelliğini kaybetmiş araçları ÖNERME. Önce arama yap, sonra cevapla.
 
@@ -52,7 +73,9 @@ SADECE şu JSON formatında cevap ver, başka hiçbir metin, açıklama veya mar
 
     const result = await generateWithRetry(model, [
       systemPrompt,
-      `Kullanıcının görevi: "${rawInput}"`,
+      outputLang === "en"
+        ? `User's task: "${rawInput}"`
+        : `Kullanıcının görevi: "${rawInput}"`,
     ]);
 
     let text = result.response.text().trim();
