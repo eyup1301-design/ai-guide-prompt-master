@@ -373,7 +373,7 @@ export default function Home() {
                 />
 
                 <button
-                  onClick={handleClassify}
+                  onClick={() => handleClassify()}
                   disabled={isClassifying || !freeText.trim()}
                   className="shrink-0 flex items-center justify-center w-10 rounded-lg bg-[#FF9F4A] text-[#14171C] hover:bg-[#FFB374] transition-colors disabled:opacity-50"
                 >
