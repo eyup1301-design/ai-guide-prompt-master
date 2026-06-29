@@ -581,12 +581,6 @@ export default function HomeEn() {
                       )}
                     </div>
 
-                    <PromptHistoryPanel
-                      history={history}
-                      onRemove={removeFromHistory}
-                      onClear={clearHistory}
-                      lang="en"
-                    />
                   </>
                 )}
               </div>
@@ -594,6 +588,13 @@ export default function HomeEn() {
           </div>
         </div>
         )}
+
+        <PromptHistoryPanel
+          history={history}
+          onRemove={removeFromHistory}
+          onClear={clearHistory}
+          lang="en"
+        />
       </section>
 
       {/* ---------- FEEDBACK ---------- */}

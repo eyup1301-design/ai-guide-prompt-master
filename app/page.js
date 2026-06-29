@@ -601,12 +601,6 @@ export default function Home() {
                       )}
                     </div>
 
-                    <PromptHistoryPanel
-                      history={history}
-                      onRemove={removeFromHistory}
-                      onClear={clearHistory}
-                      lang="tr"
-                    />
                   </>
                 )}
               </div>
@@ -614,6 +608,13 @@ export default function Home() {
           </div>
         </div>
         )}
+
+        <PromptHistoryPanel
+          history={history}
+          onRemove={removeFromHistory}
+          onClear={clearHistory}
+          lang="tr"
+        />
       </section>
 
       {/* ---------- GERİ BİLDİRİM ---------- */}
