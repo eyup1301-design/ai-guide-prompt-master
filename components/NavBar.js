@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 export default function NavBar() {
   const pathname = usePathname();
   const isEnglish = pathname?.startsWith("/en");
+  const isEnglishGuides = isEnglish && pathname?.startsWith("/en/guides");
   const isGuides = !isEnglish && pathname?.startsWith("/rehberler");
 
   return (
@@ -25,12 +26,28 @@ export default function NavBar() {
         <div className="flex-1" />
 
         {isEnglish ? (
-          <Link
-            href="/en"
-            className="text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
-          >
-            Prompt Generator
-          </Link>
+          <>
+            <Link
+              href="/en"
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
+                !isEnglishGuides
+                  ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
+                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+              }`}
+            >
+              Prompt Generator
+            </Link>
+            <Link
+              href="/en/guides"
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
+                isEnglishGuides
+                  ? "text-[#FF9F4A] bg-[#FF9F4A]/10 border-[#FF9F4A]/40"
+                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+              }`}
+            >
+              AI Guides
+            </Link>
+          </>
         ) : (
           <>
             <Link
@@ -57,7 +74,7 @@ export default function NavBar() {
           </>
         )}
 
-        {/* Dil geçişi */}
+        {/* Language switch */}
         <Link
           href={isEnglish ? "/?lang=tr" : "/en"}
           className="text-xs font-mono text-[#8B92A0] border border-[#2A2F38] rounded-full px-3 py-1.5 hover:bg-[#1C2128] transition-colors"
