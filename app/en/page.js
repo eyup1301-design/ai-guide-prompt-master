@@ -302,6 +302,7 @@ export default function HomeEn() {
                   onChange={(e) => setFreeText(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleClassify()}
                   placeholder="e.g. write me a short game script"
+                  maxLength={600}
                   className="flex-1 bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
                 />
                 <button
@@ -486,8 +487,14 @@ export default function HomeEn() {
                       onChange={(e) => setRawInput(e.target.value)}
                       placeholder="e.g. I want a crocodile illustration"
                       rows={2}
+                      maxLength={600}
                       className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
                     />
+                    <div className="flex justify-end mt-1">
+                      <span className={`text-[10px] font-mono ${rawInput.length >= 580 ? "text-red-400" : rawInput.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                        {rawInput.length}/600
+                      </span>
+                    </div>
                   </div>
 
                   {questions.map((q) => (
@@ -502,6 +509,7 @@ export default function HomeEn() {
                           setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
                         }
                         placeholder={q.placeholder}
+                        maxLength={200}
                         className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
                       />
                     </div>

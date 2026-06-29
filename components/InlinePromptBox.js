@@ -85,8 +85,14 @@ export default function InlinePromptBox({ targetAI }) {
         }}
         placeholder="örn: Q1 satış raporu yazdırmak istiyorum"
         rows={2}
-        className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none mb-3"
+        maxLength={600}
+        className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
       />
+      <div className="flex justify-end mt-1 mb-3">
+        <span className={`text-[10px] font-mono ${input.length >= 580 ? "text-red-400" : input.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+          {input.length}/600
+        </span>
+      </div>
 
       {error && <p className="text-xs text-red-400 mb-2">{error}</p>}
 

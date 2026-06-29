@@ -155,9 +155,15 @@ export default function AiFirstFlowEn() {
                 }}
                 placeholder="e.g. I want a crocodile illustration"
                 rows={2}
+                maxLength={600}
                 disabled={!!taskId}
                 className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none disabled:opacity-70"
               />
+              <div className="flex justify-end mt-1">
+                <span className={`text-[10px] font-mono ${rawInput.length >= 580 ? "text-red-400" : rawInput.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                  {rawInput.length}/600
+                </span>
+              </div>
             </div>
 
             {!taskId && (
@@ -188,6 +194,7 @@ export default function AiFirstFlowEn() {
                       value={answers[q.id] || ""}
                       onChange={(e) => handleAnswerChange(q.id, e.target.value)}
                       placeholder={q.placeholder}
+                      maxLength={200}
                       className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
                     />
                   </div>
