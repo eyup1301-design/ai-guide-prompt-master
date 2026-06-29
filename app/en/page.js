@@ -274,8 +274,10 @@ export default function HomeEn() {
                   if (heroInput.trim()) {
                     const text = heroInput;
                     setHeroInput("");
-                    document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
                     handleClassify(text);
+                    setTimeout(() => {
+                      document.getElementById("ai-panel-en")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 400);
                   }
                 }
               }}
@@ -288,8 +290,10 @@ export default function HomeEn() {
                 if (!heroInput.trim()) return;
                 const text = heroInput;
                 setHeroInput("");
-                document.getElementById("console")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 handleClassify(text);
+                setTimeout(() => {
+                  document.getElementById("ai-panel-en")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 400);
               }}
               disabled={!heroInput.trim()}
               className="shrink-0 flex items-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-xl px-5 py-3 hover:bg-[#FFB374] transition-colors disabled:opacity-40"
@@ -423,7 +427,7 @@ export default function HomeEn() {
           </div>
 
           {/* RIGHT: AI suggestion + form + result */}
-          <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl md:rounded-r-xl md:rounded-l-none p-2 flex flex-col">
+          <div id="ai-panel-en" className="bg-[#1C2128] border border-[#2A2F38] rounded-xl md:rounded-r-xl md:rounded-l-none p-2 flex flex-col">
             <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] px-3 pt-3 pb-2">
               02 — pick an AI
             </p>
