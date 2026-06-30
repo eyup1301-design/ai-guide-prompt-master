@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { TASKS, getCandidates, getQuestions } from "@/lib/task-ai-matrix";
 import AiFirstFlow from "@/components/AiFirstFlow";
+import JobFlow from "@/components/JobFlow";
 import { usePromptHistory } from "@/lib/usePromptHistory";
 import PromptHistoryPanel from "@/components/PromptHistoryPanel";
 import { useEffect } from "react";
@@ -368,9 +369,24 @@ export default function Home() {
           >
             AI'ya göre
           </button>
+          <button
+            onClick={() => setMode("job")}
+            className={`text-xs font-medium rounded-full px-4 py-2 border transition-colors ${
+              mode === "job"
+                ? "text-[#A78BFA] bg-[#A78BFA]/10 border-[#A78BFA]/40"
+                : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+            }`}
+          >
+            İşe göre
+            <span className="ml-1.5 text-[9px] font-mono uppercase tracking-wider text-[#A78BFA] border border-[#A78BFA]/30 rounded-full px-1.5 py-0.5">yeni</span>
+          </button>
         </div>
 
-        {mode === "ai" ? (
+        {mode === "job" ? (
+          <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl p-4 sm:p-5">
+            <JobFlow />
+          </div>
+        ) : mode === "ai" ? (
           <AiFirstFlow />
         ) : (
         <div className="grid grid-cols-1 md:grid-cols-[1fr_64px_1fr] gap-3 md:gap-0 items-stretch">
