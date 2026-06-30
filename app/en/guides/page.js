@@ -6,6 +6,7 @@ const GUIDES = [
     name: "Gemini",
     vendor: "Google",
     color: "#1C69FF",
+    iconType: "simpleicons",
     icon: "googlegemini",
     description: "What it does, strengths/weaknesses, efficient use",
     ready: true,
@@ -15,6 +16,7 @@ const GUIDES = [
     name: "ChatGPT",
     vendor: "OpenAI",
     color: "#10A37F",
+    iconType: "simpleicons",
     icon: "openai",
     description: "What it does, strengths/weaknesses, efficient use",
     ready: true,
@@ -24,6 +26,7 @@ const GUIDES = [
     name: "Claude",
     vendor: "Anthropic",
     color: "#D97757",
+    iconType: "simpleicons",
     icon: "anthropic",
     description: "What it does, strengths/weaknesses, efficient use",
     ready: true,
@@ -33,7 +36,8 @@ const GUIDES = [
     name: "Midjourney",
     vendor: "Midjourney",
     color: "#3B82F6",
-    icon: "midjourney",
+    iconType: "favicon",
+    icon: "https://www.midjourney.com/favicon.ico",
     description: "What it does, strengths/weaknesses, efficient use",
     ready: true,
   },
@@ -42,6 +46,7 @@ const GUIDES = [
     name: "Perplexity",
     vendor: "Perplexity AI",
     color: "#14B8A6",
+    iconType: "simpleicons",
     icon: "perplexity",
     description: "Real-time search, sourced summaries, research",
     ready: true,
@@ -51,7 +56,8 @@ const GUIDES = [
     name: "Suno AI",
     vendor: "Suno",
     color: "#A855F7",
-    icon: "suno",
+    iconType: "text",
+    icon: "S",
     description: "Vocal song generation, AI music creation",
     ready: true,
   },
@@ -60,7 +66,8 @@ const GUIDES = [
     name: "Kling AI",
     vendor: "Kuaishou",
     color: "#F59E0B",
-    icon: "kling",
+    iconType: "text",
+    icon: "K",
     description: "Video generation, camera control, motion physics",
     ready: true,
   },
@@ -120,21 +127,22 @@ export default function GuidesHubEn() {
 }
 
 function GuideIcon({ guide }) {
-  const iconSrc = guide.slug === "midjourney"
-    ? "https://www.midjourney.com/favicon.ico"
-    : `https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/${guide.icon}.svg`;
-  const isInverted = guide.slug !== "midjourney";
-
   return (
     <div
       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
       style={{ backgroundColor: guide.color }}
     >
-      <img
-        src={iconSrc}
-        alt=""
-        className={`w-5 h-5 ${isInverted ? "invert" : ""}`}
-      />
+      {guide.iconType === "text" ? (
+        <span className="text-white text-sm font-bold">{guide.icon}</span>
+      ) : guide.iconType === "favicon" ? (
+        <img src={guide.icon} alt="" className="w-5 h-5" />
+      ) : (
+        <img
+          src={`https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/${guide.icon}.svg`}
+          alt=""
+          className="w-4 h-4 invert"
+        />
+      )}
     </div>
   );
 }
