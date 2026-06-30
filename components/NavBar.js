@@ -11,6 +11,7 @@ export default function NavBar() {
   const isHowItWorks = pathname === "/nasil-calisir" || pathname === "/en/how-it-works";
   const isPrompt = pathname === "/prompt" || pathname === "/en/prompt";
   const isHome = pathname === "/" || pathname === "/en";
+  const isPromptLibrary = pathname === "/promptlar" || pathname === "/en/prompts";
 
   return (
     <nav className="bg-[#14171C] border-b border-[#2A2F38]">
@@ -82,6 +83,16 @@ export default function NavBar() {
               }`}
             >
               Prompt Oluştur
+            </Link>
+            <Link
+              href="/promptlar"
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
+                isPromptLibrary
+                  ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
+                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+              }`}
+            >
+              Hazır Promptlar
             </Link>
             <Link
               href="/rehberler"

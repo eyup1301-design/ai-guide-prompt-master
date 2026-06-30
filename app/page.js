@@ -8,6 +8,7 @@ import {
   Sparkles,
   BookOpen,
   Zap,
+  Copy,
   Image as ImageIcon,
   Code2,
   PenTool,
@@ -36,6 +37,13 @@ const FEATURES = [
     desc: "Mesleğini yaz, sistem tüm iş ihtiyaçlarını analiz eder ve her biri için en uygun AI'ı önerir.",
     href: "/prompt",
     badge: "Yeni",
+  },
+  {
+    icon: Copy,
+    color: "#4ADEDE",
+    title: "Hazır Promptlar",
+    desc: "50 hazır prompt — görsel, metin, müzik, video ve araştırma kategorilerinde. Kopyala, yapıştır, kullan.",
+    href: "/promptlar",
   },
   {
     icon: BookOpen,

@@ -124,6 +124,12 @@ export default function sitemap() {
       priority: 0.85,
     },
     {
+      url: `${baseUrl}/promptlar`,
+      lastModified: now,
+      changeFrequency: "weekly",
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/nasil-calisir`,
       lastModified: now,
       changeFrequency: "monthly",
