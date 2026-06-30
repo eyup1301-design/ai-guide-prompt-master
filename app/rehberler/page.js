@@ -32,7 +32,7 @@ const GUIDES = [
     slug: "midjourney",
     name: "Midjourney",
     vendor: "Midjourney",
-    color: "#1A1A2E",
+    color: "#3B82F6",
     icon: "midjourney",
     description: "Ne yapar, güçlü/zayıf yönleri, verimli kullanım",
     ready: true,
