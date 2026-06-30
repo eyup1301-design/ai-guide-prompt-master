@@ -20,6 +20,10 @@ export async function POST(request) {
       );
     }
 
+    if (typeof rawInput !== "string" || rawInput.length > 600) {
+      return Response.json({ error: "Girdi çok uzun (maks. 600 karakter)." }, { status: 400 });
+    }
+
     const outputLang = language === "en" ? "en" : "tr";
 
     const today = new Date().toLocaleDateString(

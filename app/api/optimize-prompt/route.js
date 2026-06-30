@@ -25,6 +25,19 @@ export async function POST(request) {
       );
     }
 
+    if (typeof rawInput !== "string" || rawInput.length > 600) {
+      return Response.json({ error: "Girdi çok uzun (maks. 600 karakter)." }, { status: 400 });
+    }
+    if (typeof targetAI !== "string" || targetAI.length > 100) {
+      return Response.json({ error: "Geçersiz hedef AI." }, { status: 400 });
+    }
+    const answersObj = answers || {};
+    for (const val of Object.values(answersObj)) {
+      if (typeof val === "string" && val.length > 200) {
+        return Response.json({ error: "Cevap çok uzun (maks. 200 karakter)." }, { status: 400 });
+      }
+    }
+
     // Kullanıcının cevapladığı ek soruları okunabilir bir metne çeviriyoruz.
     const answersText = Object.entries(answers || {})
       .filter(([, value]) => value && value.trim() !== "")

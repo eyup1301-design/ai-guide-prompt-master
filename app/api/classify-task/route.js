@@ -22,6 +22,10 @@ export async function POST(request) {
       );
     }
 
+    if (typeof rawInput !== "string" || rawInput.length > 600) {
+      return Response.json({ taskId: "other" });
+    }
+
     const categoryList = TASKS.filter((t) => !t.hidden)
       .map((t) => `- ${t.id}: ${t.label} (${t.description})`)
       .join("\n");

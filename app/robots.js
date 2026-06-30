@@ -3,7 +3,7 @@ export default function robots() {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/api/", "/feedback"],
+      disallow: ["/api/", "/feedback", "/admin"],
     },
     sitemap: "https://wrompt.com/sitemap.xml",
   };
