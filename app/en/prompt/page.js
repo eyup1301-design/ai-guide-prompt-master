@@ -301,6 +301,7 @@ export default function HomeEn() {
               }}
               placeholder="What do you want to do? Type it, we'll handle the rest..."
               rows={2}
+              maxLength={600}
               className="flex-1 bg-[#1C2128] border border-[#2A2F38] rounded-xl px-4 py-3 text-sm text-[#ECEEF1] placeholder:text-[#4ADEDE]/40 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
             />
             <button
@@ -320,9 +321,14 @@ export default function HomeEn() {
               <ArrowRight size={16} />
             </button>
           </div>
-          <p className="text-xs text-[#8B92A0]/50 mt-2">
-            Or pick your task and AI manually below.
-          </p>
+          <div className="flex items-center justify-between mt-1.5">
+            <p className="text-xs text-[#8B92A0]/50">
+              Or pick your task and AI manually below.
+            </p>
+            <span className={`text-[10px] font-mono ${heroInput.length >= 580 ? "text-red-400" : heroInput.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+              {heroInput.length}/600
+            </span>
+          </div>
         </div>
       </section>
 

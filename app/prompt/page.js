@@ -313,6 +313,7 @@ export default function Home() {
               }}
               placeholder="Ne yapmak istiyorsun? Yaz, gerisini halledelim..."
               rows={2}
+              maxLength={600}
               className="flex-1 bg-[#1C2128] border border-[#2A2F38] rounded-xl px-4 py-3 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
             />
             <button
@@ -332,9 +333,14 @@ export default function Home() {
               <ArrowRight size={16} />
             </button>
           </div>
-          <p className="text-xs text-[#8B92A0]/50 mt-2">
-            Ya da aşağıdan görev ve AI seçimini kendin yap.
-          </p>
+          <div className="flex items-center justify-between mt-1.5">
+            <p className="text-xs text-[#8B92A0]/50">
+              Ya da aşağıdan görev ve AI seçimini kendin yap.
+            </p>
+            <span className={`text-[10px] font-mono ${heroInput.length >= 580 ? "text-red-400" : heroInput.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+              {heroInput.length}/600
+            </span>
+          </div>
         </div>
       </section>
 
