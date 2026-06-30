@@ -152,15 +152,20 @@ export default function RehberlerHub() {
 }
 
 function GuideIcon({ guide }) {
+  const iconSrc = guide.slug === "midjourney"
+    ? "https://www.midjourney.com/favicon.ico"
+    : `https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/${guide.icon}.svg`;
+  const isInverted = guide.slug !== "midjourney";
+
   return (
     <div
       className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
       style={{ backgroundColor: guide.color }}
     >
       <img
-        src={`https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/${guide.icon}.svg`}
+        src={iconSrc}
         alt=""
-        className="w-4 h-4 invert"
+        className={`w-5 h-5 ${isInverted ? "invert" : ""}`}
       />
     </div>
   );

@@ -33,8 +33,8 @@ export default function MidjourneyGuideEn() {
         </Link>
 
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-9 h-9 rounded-lg bg-[#1A1A2E] flex items-center justify-center">
-            <img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/midjourney.svg" alt="" className="w-4 h-4 invert" />
+          <div className="w-9 h-9 rounded-lg bg-[#3B82F6] flex items-center justify-center overflow-hidden">
+            <img src="https://www.midjourney.com/favicon.ico" alt="" className="w-6 h-6" />
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-semibold">Midjourney Guide</h1>
         </div>
