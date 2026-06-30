@@ -30,12 +30,19 @@ const FEATURES = [
     href: "/prompt",
   },
   {
-    icon: BookOpen,
+    icon: Zap,
     color: "#A78BFA",
+    title: "İşine Göre AI Bul",
+    desc: "Mesleğini yaz, sistem tüm iş ihtiyaçlarını analiz eder ve her biri için en uygun AI'ı önerir.",
+    href: "/prompt",
+    badge: "Yeni",
+  },
+  {
+    icon: BookOpen,
+    color: "#FF9F4A",
     title: "Rehberlerle Öğren",
     desc: "ChatGPT, Claude, Gemini, Midjourney için detaylı Türkçe rehberler. Güçlü/zayıf yönler, ipuçları, örnekler.",
     href: "/rehberler",
-    badge: "Yeni rehberler",
   },
 ];
 

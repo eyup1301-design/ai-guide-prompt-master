@@ -30,12 +30,19 @@ const FEATURES = [
     href: "/en/prompt",
   },
   {
-    icon: BookOpen,
+    icon: Zap,
     color: "#A78BFA",
+    title: "Find AI by Job",
+    desc: "Type your profession, the system analyzes all your work needs and recommends the best AI for each.",
+    href: "/en/prompt",
+    badge: "New",
+  },
+  {
+    icon: BookOpen,
+    color: "#FF9F4A",
     title: "Learn with Guides",
     desc: "Detailed guides for ChatGPT, Claude, Gemini, Midjourney. Strengths, weaknesses, tips, examples.",
     href: "/en/guides",
-    badge: "New guides",
   },
 ];
 
