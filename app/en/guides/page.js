@@ -37,6 +37,33 @@ const GUIDES = [
     description: "What it does, strengths/weaknesses, efficient use",
     ready: true,
   },
+  {
+    slug: "perplexity",
+    name: "Perplexity",
+    vendor: "Perplexity AI",
+    color: "#14B8A6",
+    icon: "perplexity",
+    description: "Real-time search, sourced summaries, research",
+    ready: true,
+  },
+  {
+    slug: "suno",
+    name: "Suno AI",
+    vendor: "Suno",
+    color: "#A855F7",
+    icon: "suno",
+    description: "Vocal song generation, AI music creation",
+    ready: true,
+  },
+  {
+    slug: "kling",
+    name: "Kling AI",
+    vendor: "Kuaishou",
+    color: "#F59E0B",
+    icon: "kling",
+    description: "Video generation, camera control, motion physics",
+    ready: true,
+  },
 ];
 
 export const metadata = {

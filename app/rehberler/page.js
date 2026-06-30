@@ -37,6 +37,33 @@ const GUIDES = [
     description: "Ne yapar, güçlü/zayıf yönleri, verimli kullanım",
     ready: true,
   },
+  {
+    slug: "perplexity",
+    name: "Perplexity",
+    vendor: "Perplexity AI",
+    color: "#14B8A6",
+    icon: "perplexity",
+    description: "Gerçek zamanlı arama, kaynaklı özet, araştırma",
+    ready: true,
+  },
+  {
+    slug: "suno",
+    name: "Suno AI",
+    vendor: "Suno",
+    color: "#A855F7",
+    icon: "suno",
+    description: "Vokalli şarkı üretimi, müzik oluşturma",
+    ready: true,
+  },
+  {
+    slug: "kling",
+    name: "Kling AI",
+    vendor: "Kuaishou",
+    color: "#F59E0B",
+    icon: "kling",
+    description: "Video üretme, kamera kontrolü, hareket fiziği",
+    ready: true,
+  },
 ];
 
 export const metadata = {
