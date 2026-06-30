@@ -1,0 +1,742 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import {
+  Code2,
+  Image as ImageIcon,
+  BarChart3,
+  PenTool,
+  Search,
+  Video,
+  Music,
+  Sparkles,
+  ArrowRight,
+  Radio,
+  Copy,
+  Check,
+  Loader2,
+  Send,
+  BookOpen,
+} from "lucide-react";
+import { TASKS, getCandidates, getQuestions } from "@/lib/task-ai-matrix.en";
+import AiFirstFlowEn from "@/components/AiFirstFlowEn";
+import { usePromptHistory } from "@/lib/usePromptHistory";
+import PromptHistoryPanel from "@/components/PromptHistoryPanel";
+import { useEffect } from "react";
+
+const TOOL_GUIDE_SLUG = {
+  "claude-sonnet": "claude",
+  "gpt-4o": "chatgpt",
+  midjourney: "midjourney",
+  "gemini-pro": "gemini",
+  "nano-banana": "gemini",
+};
+
+const PRICING_LABELS = {
+  free: { label: "free", className: "text-[#4ADEDE] border-[#4ADEDE]/30" },
+  freemium: { label: "freemium", className: "text-[#FACC15] border-[#FACC15]/30" },
+  paid: { label: "paid", className: "text-[#F87171] border-[#F87171]/30" },
+};
+
+const ICONS = {
+  Code2,
+  Image: ImageIcon,
+  BarChart3,
+  PenTool,
+  Search,
+  Video,
+  Music,
+  Sparkles,
+};
+
+export default function HomeEn() {
+  const [heroInput, setHeroInput] = useState("");
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [mode, setMode] = useState("task");
+  const [rawInput, setRawInput] = useState("");
+  const [answers, setAnswers] = useState({});
+  const [optimizedPrompt, setOptimizedPrompt] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [language, setLanguage] = useState("en");
+  const [selectedToolKey, setSelectedToolKey] = useState(null);
+  const [freeText, setFreeText] = useState("");
+  const [isClassifying, setIsClassifying] = useState(false);
+  const [classifyError, setClassifyError] = useState("");
+  const [dynamicCandidates, setDynamicCandidates] = useState([]);
+  const [isFetchingTool, setIsFetchingTool] = useState(false);
+  const [feedbackText, setFeedbackText] = useState("");
+  const [feedbackCopied, setFeedbackCopied] = useState(false);
+  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState(false);
+
+  const { history, addToHistory, removeFromHistory, clearHistory } = usePromptHistory();
+  const [promptCount, setPromptCount] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/prompt-count")
+      .then((r) => r.json())
+      .then((d) => setPromptCount(d.count))
+      .catch(() => {});
+  }, []);
+
+  const LANGUAGE_OPTIONS = [
+    { id: "en", label: "english" },
+    { id: "tr", label: "turkish" },
+  ];
+
+  const selectedTask = TASKS.find((t) => t.id === selectedTaskId) ?? null;
+  const staticCandidates = selectedTaskId ? getCandidates(selectedTaskId) : [];
+  const candidates =
+    selectedTaskId === "other" && dynamicCandidates.length > 0
+      ? dynamicCandidates
+      : staticCandidates;
+  const primaryTool =
+    candidates.find((c) => c.key === selectedToolKey) ?? candidates[0] ?? null;
+  const questions = selectedTaskId ? getQuestions(selectedTaskId) : [];
+
+  function handleSelectTask(taskId, prefillText = "") {
+    setSelectedTaskId(taskId);
+    setSelectedToolKey(null);
+    setRawInput(prefillText);
+    setAnswers({});
+    setOptimizedPrompt("");
+    setError("");
+    setDynamicCandidates([]);
+  }
+
+  async function fetchDynamicTool(text) {
+    setIsFetchingTool(true);
+    try {
+      const response = await fetch("/api/recommend-tool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawInput: text, language: "en" }),
+      });
+      const data = await response.json();
+      if (response.ok && data.candidates?.length > 0) {
+        setDynamicCandidates(
+          data.candidates.map((c, i) => ({
+            ...c,
+            color: c.color || "#FF9F4A",
+            recommended: i === 0,
+          }))
+        );
+      }
+    } catch (err) {
+      // silently fall back to static pool
+    } finally {
+      setIsFetchingTool(false);
+    }
+  }
+
+  async function handleClassify(overrideText) {
+    const text = overrideText ?? freeText;
+    const fromHero = overrideText !== undefined;
+    if (!text.trim()) return;
+    setIsClassifying(true);
+    setClassifyError("");
+
+    try {
+      const response = await fetch("/api/classify-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rawInput: text }),
+      });
+
+      const data = await response.json();
+      const taskId = data.taskId || "other";
+      handleSelectTask(taskId, text);
+      setFreeText("");
+
+      if (taskId === "other") {
+        fetchDynamicTool(text);
+      }
+    } catch (err) {
+      if (fromHero) {
+        handleSelectTask("other", text);
+        setFreeText("");
+        fetchDynamicTool(text);
+      } else {
+        setClassifyError("Couldn't classify, please pick from the list below.");
+      }
+    } finally {
+      setIsClassifying(false);
+    }
+  }
+
+  async function handleFeedbackSend() {
+    if (!feedbackText.trim()) return;
+    setIsSendingFeedback(true);
+
+    try {
+      const response = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: feedbackText }),
+      });
+
+      if (!response.ok) throw new Error("Failed");
+
+      setFeedbackSent(true);
+      setFeedbackText("");
+      setTimeout(() => setFeedbackSent(false), 5000);
+    } catch (err) {
+      const subject = encodeURIComponent("Wrompt Feedback");
+      const body = encodeURIComponent(feedbackText);
+      window.location.href = `mailto:wrompt.info@gmail.com?subject=${subject}&body=${body}`;
+      navigator.clipboard?.writeText(feedbackText);
+      setFeedbackCopied(true);
+      setTimeout(() => setFeedbackCopied(false), 5000);
+    } finally {
+      setIsSendingFeedback(false);
+    }
+  }
+
+  async function handleOptimize() {
+    if (!rawInput.trim()) {
+      setError("First, briefly describe what you want to do.");
+      return;
+    }
+    setError("");
+    setIsLoading(true);
+    setOptimizedPrompt("");
+
+    try {
+      const response = await fetch("/api/optimize-prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rawInput,
+          taskLabel: selectedTask?.label,
+          targetAI: primaryTool?.name,
+          answers,
+          language,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Something went wrong.");
+      setOptimizedPrompt(data.optimizedPrompt);
+      addToHistory({
+        input: rawInput.trim(),
+        result: data.optimizedPrompt,
+        targetAI: primaryTool?.name,
+        taskLabel: selectedTask?.label,
+      });
+    } catch (err) {
+      setError(err.message || "Couldn't optimize the prompt, please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handleCopy() {
+    await navigator.clipboard.writeText(optimizedPrompt);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <main className="min-h-screen bg-[#14171C] text-[#ECEEF1] selection:bg-[#FF9F4A]/30">
+      <style>{`
+        @keyframes signalPulse {
+          0% { transform: translateY(-8px); opacity: 0; }
+          15% { opacity: 1; }
+          85% { opacity: 1; }
+          100% { transform: translateY(8px); opacity: 0; }
+        }
+        .signal-dot { animation: signalPulse 1.4s ease-in-out infinite; }
+        @keyframes fadeRise {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-rise { animation: fadeRise 0.35s ease-out forwards; }
+      `}</style>
+
+      {/* ---------- HERO ---------- */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 sm:pb-12">
+        <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-[#8B92A0] mb-5 sm:mb-6">
+          <Radio size={14} className="text-[#FF9F4A]" />
+          <span>AI Guide & Prompt Master</span>
+        </div>
+        <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.1] md:leading-[1.05] max-w-3xl">
+          Pick the right AI,{" "}
+          <span className="text-[#FF9F4A]">optimize your prompt.</span>
+        </h1>
+        <p className="mt-4 sm:mt-5 text-base sm:text-lg text-[#8B92A0] max-w-xl">
+          Choose your task. We&apos;ll match you with the best AI tool and craft a
+          ready-to-use prompt for it, in real time.
+        </p>
+
+        {promptCount !== null && (
+          <div className="mt-6 inline-flex items-center gap-2 text-xs font-mono text-[#8B92A0] bg-[#1C2128] border border-[#2A2F38] rounded-full px-4 py-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#4ADEDE] animate-pulse inline-block" />
+            <span>
+              <span className="text-[#ECEEF1] font-semibold">{promptCount.toLocaleString("en-US")}+</span>
+              {" "}prompts optimized
+            </span>
+          </div>
+        )}
+
+        {/* Quick start box */}
+        <div className="mt-8 max-w-2xl">
+          <div className="flex gap-3 items-start">
+            <textarea
+              value={heroInput}
+              onChange={(e) => setHeroInput(e.target.value.slice(0, 600))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                  if (heroInput.trim()) {
+                    const text = heroInput;
+                    setHeroInput("");
+                    handleClassify(text);
+                    setTimeout(() => {
+                      document.getElementById("ai-panel-en")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 400);
+                  }
+                }
+              }}
+              placeholder="What do you want to do? Type it, we'll handle the rest..."
+              rows={2}
+              className="flex-1 bg-[#1C2128] border border-[#2A2F38] rounded-xl px-4 py-3 text-sm text-[#ECEEF1] placeholder:text-[#4ADEDE]/40 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
+            />
+            <button
+              onClick={() => {
+                if (!heroInput.trim()) return;
+                const text = heroInput;
+                setHeroInput("");
+                handleClassify(text);
+                setTimeout(() => {
+                  document.getElementById("ai-panel-en")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 400);
+              }}
+              disabled={!heroInput.trim()}
+              className="shrink-0 flex items-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-xl px-5 py-3 hover:bg-[#FFB374] transition-colors disabled:opacity-40"
+            >
+              Continue
+              <ArrowRight size={16} />
+            </button>
+          </div>
+          <p className="text-xs text-[#8B92A0]/50 mt-2">
+            Or pick your task and AI manually below.
+          </p>
+        </div>
+      </section>
+
+      {/* ---------- CONSOLE ---------- */}
+      <section id="console" className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setMode("task")}
+            className={`text-xs font-medium rounded-full px-4 py-2 border transition-colors ${
+              mode === "task"
+                ? "text-[#FF9F4A] bg-[#FF9F4A]/10 border-[#FF9F4A]/40"
+                : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+            }`}
+          >
+            By task
+          </button>
+          <button
+            onClick={() => setMode("ai")}
+            className={`text-xs font-medium rounded-full px-4 py-2 border transition-colors ${
+              mode === "ai"
+                ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
+                : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+            }`}
+          >
+            By AI
+          </button>
+        </div>
+
+        {mode === "ai" ? (
+          <AiFirstFlowEn />
+        ) : (
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_64px_1fr] gap-3 md:gap-0 items-stretch">
+          {/* LEFT: Task list */}
+          <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl md:rounded-l-xl md:rounded-r-none p-2">
+            <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] px-3 pt-3 pb-2">
+              01 — pick your task
+            </p>
+
+            <div className="px-3 pb-3">
+              <label className="text-xs text-[#8B92A0] mb-1.5 block">
+                or describe it in your own words
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={freeText}
+                  onChange={(e) => setFreeText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleClassify()}
+                  placeholder="e.g. write me a short game script"
+                  maxLength={600}
+                  className="flex-1 bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
+                />
+                <button
+                  onClick={() => handleClassify()}
+                  disabled={isClassifying || !freeText.trim()}
+                  className="shrink-0 flex items-center justify-center w-10 rounded-lg bg-[#FF9F4A] text-[#14171C] hover:bg-[#FFB374] transition-colors disabled:opacity-50"
+                >
+                  {isClassifying ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <ArrowRight size={16} />
+                  )}
+                </button>
+              </div>
+              <div className="flex justify-end mt-1">
+                <span className={`text-[10px] font-mono ${freeText.length >= 580 ? "text-red-400" : freeText.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                  {freeText.length}/600
+                </span>
+              </div>
+              {classifyError && (
+                <p className="text-xs text-red-400 mt-1.5">{classifyError}</p>
+              )}
+              <div className="flex items-center gap-2 mt-4">
+                <div className="flex-1 h-px bg-[#2A2F38]" />
+                <span className="text-[10px] text-[#8B92A0] font-mono uppercase tracking-wider">
+                  or pick from the list
+                </span>
+                <div className="flex-1 h-px bg-[#2A2F38]" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              {TASKS.filter((task) => !task.hidden).map((task) => {
+                const Icon = ICONS[task.icon];
+                const isActive = selectedTaskId === task.id;
+                return (
+                  <button
+                    key={task.id}
+                    onClick={() => handleSelectTask(task.id)}
+                    className={`flex items-center gap-3 text-left px-3 py-3 rounded-lg transition-colors ${
+                      isActive
+                        ? "bg-[#FF9F4A]/10 border border-[#FF9F4A]/40"
+                        : "border border-transparent hover:bg-[#252B33]"
+                    }`}
+                  >
+                    <Icon
+                      size={18}
+                      className={isActive ? "text-[#FF9F4A]" : "text-[#8B92A0]"}
+                    />
+                    <div>
+                      <p className="text-sm font-medium text-[#ECEEF1]/90">
+                        {task.label}
+                      </p>
+                      <p className="text-xs text-[#8B92A0] mt-0.5">
+                        {task.description}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* MIDDLE: Signal line */}
+          <div className="hidden md:flex flex-col items-center justify-center bg-[#1C2128]/40 border-y border-[#2A2F38] relative">
+            <div className="w-px h-full bg-[#2A2F38] absolute" />
+            {selectedTaskId && (
+              <div className="relative z-10 w-2 h-2 rounded-full bg-[#4ADEDE] signal-dot" />
+            )}
+          </div>
+
+          {/* RIGHT: AI suggestion + form + result */}
+          <div id="ai-panel-en" className="bg-[#1C2128] border border-[#2A2F38] rounded-xl md:rounded-r-xl md:rounded-l-none p-2 flex flex-col">
+            <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] px-3 pt-3 pb-2">
+              02 — pick an AI
+            </p>
+
+            {!primaryTool && !isFetchingTool && (
+              <div className="flex-1 flex items-center justify-center px-6 py-12 text-center">
+                <p className="text-sm text-[#8B92A0]">
+                  Pick a task on the left, matches will appear here.
+                </p>
+              </div>
+            )}
+
+            {isFetchingTool && (
+              <div className="flex-1 flex items-center justify-center gap-2 px-6 py-12 text-center text-[#8B92A0]">
+                <Loader2 size={16} className="animate-spin" />
+                <p className="text-sm">searching for current AIs...</p>
+              </div>
+            )}
+
+            {primaryTool && !isFetchingTool && (
+              <div className="px-3 pb-3 fade-rise" key={selectedTaskId}>
+                <div className="flex flex-col gap-1.5 mb-3">
+                  {candidates.map((tool) => {
+                    const isSelected = tool.key === primaryTool.key;
+                    const pricing = PRICING_LABELS[tool.pricing] || PRICING_LABELS.freemium;
+                    return (
+                      <button
+                        key={tool.key}
+                        onClick={() => setSelectedToolKey(tool.key)}
+                        className={`flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1.5 text-left px-3 py-2 rounded-lg border transition-colors ${
+                          isSelected
+                            ? "bg-[#14171C] border-[#FF9F4A]/40"
+                            : "border-[#2A2F38] hover:bg-[#252B33]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className="text-sm font-medium"
+                            style={{ color: tool.color }}
+                          >
+                            {tool.name}
+                          </span>
+                          {tool.recommended && (
+                            <span className="text-[9px] font-mono uppercase tracking-wider text-[#4ADEDE] border border-[#4ADEDE]/30 rounded-full px-1.5 py-0.5 whitespace-nowrap">
+                              best match
+                            </span>
+                          )}
+                        </div>
+                        <span
+                          className={`text-[10px] font-mono uppercase tracking-wider border rounded-full px-2 py-0.5 whitespace-nowrap ${pricing.className}`}
+                        >
+                          {pricing.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="rounded-lg border border-[#2A2F38] bg-[#14171C] p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p
+                        className="text-base font-semibold"
+                        style={{ color: primaryTool.color }}
+                      >
+                        {primaryTool.name}
+                      </p>
+                      <p className="text-xs text-[#8B92A0] mt-0.5">
+                        {primaryTool.vendor} · {primaryTool.priceNote}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-[#ECEEF1]/80 mt-3 leading-relaxed">
+                    {primaryTool.strengths}
+                  </p>
+                  <div className="mt-4 pt-3 border-t border-[#2A2F38]">
+                    <p className="text-xs font-mono uppercase tracking-wider text-[#FF9F4A] mb-1">
+                      golden tip
+                    </p>
+                    <p className="text-sm text-[#ECEEF1]/80 leading-relaxed">
+                      {primaryTool.goldenTip}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-1.5 block">
+                      prompt language
+                    </label>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {LANGUAGE_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.id}
+                          onClick={() => setLanguage(opt.id)}
+                          className={`text-xs font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border transition-colors ${
+                            language === opt.id
+                              ? "bg-[#FF9F4A]/10 border-[#FF9F4A]/40 text-[#FF9F4A]"
+                              : "border-[#2A2F38] text-[#8B92A0] hover:bg-[#252B33]"
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-1.5 block">
+                      what do you want to do?
+                    </label>
+                    <textarea
+                      value={rawInput}
+                      onChange={(e) => setRawInput(e.target.value)}
+                      placeholder="e.g. I want a crocodile illustration"
+                      rows={2}
+                      maxLength={600}
+                      className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
+                    />
+                    <div className="flex justify-end mt-1">
+                      <span className={`text-[10px] font-mono ${rawInput.length >= 580 ? "text-red-400" : rawInput.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                        {rawInput.length}/600
+                      </span>
+                    </div>
+                  </div>
+
+                  {questions.map((q) => (
+                    <div key={q.id}>
+                      <label className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-1.5 block">
+                        {q.label}
+                      </label>
+                      <input
+                        type="text"
+                        value={answers[q.id] || ""}
+                        onChange={(e) =>
+                          setAnswers((prev) => ({ ...prev, [q.id]: e.target.value }))
+                        }
+                        placeholder={q.placeholder}
+                        maxLength={200}
+                        className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
+                      />
+                      <div className="flex justify-end mt-0.5">
+                        <span className={`text-[10px] font-mono ${(answers[q.id] || "").length >= 190 ? "text-red-400" : (answers[q.id] || "").length >= 160 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+                          {(answers[q.id] || "").length}/200
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {error && <p className="text-xs text-red-400">{error}</p>}
+
+                  <button
+                    onClick={handleOptimize}
+                    disabled={isLoading}
+                    className="mt-1 w-full flex items-center justify-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-lg py-2.5 hover:bg-[#FFB374] transition-colors disabled:opacity-60"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 size={16} className="animate-spin" />
+                        optimizing...
+                      </>
+                    ) : (
+                      <>
+                        Generate my prompt
+                        <ArrowRight size={16} />
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {optimizedPrompt && (
+                  <>
+                    <div className="mt-4 rounded-lg border border-[#4ADEDE]/30 bg-[#14171C] p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-mono uppercase tracking-wider text-[#4ADEDE]">
+                          optimized prompt
+                        </p>
+                        <button
+                          onClick={handleCopy}
+                          className="flex items-center gap-1.5 text-xs text-[#8B92A0] hover:text-[#ECEEF1] transition-colors"
+                        >
+                          {copied ? (
+                            <>
+                              <Check size={14} className="text-[#4ADEDE]" />
+                              copied
+                            </>
+                          ) : (
+                            <>
+                              <Copy size={14} />
+                              copy
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      <p className="text-sm text-[#ECEEF1]/90 leading-relaxed whitespace-pre-wrap">
+                        {optimizedPrompt}
+                      </p>
+
+                      {TOOL_GUIDE_SLUG[primaryTool?.key] && (
+                        <div className="mt-4 pt-3 border-t border-[#2A2F38]">
+                          <p className="text-[10px] font-mono uppercase tracking-wider text-[#8B92A0] mb-2">
+                            Learn more
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            <Link
+                              href={`/en/guides/${TOOL_GUIDE_SLUG[primaryTool.key]}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#4ADEDE] border border-[#4ADEDE]/30 bg-[#4ADEDE]/5 rounded-full px-3.5 py-1.5 hover:bg-[#4ADEDE]/15 transition-colors"
+                            >
+                              <BookOpen size={12} />
+                              English {primaryTool.name} Guide
+                            </Link>
+                            <Link
+                              href={`/rehberler/${TOOL_GUIDE_SLUG[primaryTool.key]}`}
+                              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#8B92A0] border border-[#2A2F38] bg-transparent rounded-full px-3.5 py-1.5 hover:bg-[#1C2128] hover:text-[#ECEEF1] transition-colors"
+                            >
+                              <BookOpen size={12} />
+                              Türkçe Rehber
+                            </Link>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        )}
+
+        <PromptHistoryPanel
+          history={history}
+          onRemove={removeFromHistory}
+          onClear={clearHistory}
+          lang="en"
+        />
+      </section>
+
+      {/* ---------- FEEDBACK ---------- */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
+        <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl p-5 sm:p-6 max-w-xl mx-auto text-center">
+          <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-2">
+            feedback
+          </p>
+          <p className="text-sm text-[#ECEEF1]/80 mb-4">
+            Something not working, or a feature you'd like to see? Let us know.
+          </p>
+          <textarea
+            value={feedbackText}
+            onChange={(e) => setFeedbackText(e.target.value)}
+            placeholder="write your thoughts here..."
+            rows={3}
+            maxLength={500}
+            className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
+          />
+          <div className="flex justify-end mt-1">
+            <span className={`text-[10px] font-mono ${feedbackText.length >= 490 ? "text-red-400" : feedbackText.length >= 400 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+              {feedbackText.length}/500
+            </span>
+          </div>
+          <button
+            onClick={handleFeedbackSend}
+            disabled={!feedbackText.trim() || isSendingFeedback}
+            className="mt-3 flex items-center justify-center gap-2 mx-auto text-sm font-medium bg-transparent border border-[#4ADEDE]/40 text-[#4ADEDE] rounded-lg px-5 py-2 hover:bg-[#4ADEDE]/10 transition-colors disabled:opacity-40"
+          >
+            {isSendingFeedback ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                sending...
+              </>
+            ) : (
+              <>
+                Send
+                <Send size={14} />
+              </>
+            )}
+          </button>
+          {feedbackSent && (
+            <p className="text-xs text-[#4ADEDE] mt-3">
+              Thanks! Your feedback was recorded 🙌
+            </p>
+          )}
+          {feedbackCopied && (
+            <p className="text-xs text-[#4ADEDE] mt-3">
+              Copied! If your mail app didn't open, paste it directly into an
+              email to <span className="font-medium">wrompt.info@gmail.com</span>.
+            </p>
+          )}
+        </div>
+      </section>
+    </main>
+  );
+}

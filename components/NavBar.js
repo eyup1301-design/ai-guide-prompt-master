@@ -9,6 +9,8 @@ export default function NavBar() {
   const isEnglishGuides = isEnglish && pathname?.startsWith("/en/guides");
   const isGuides = !isEnglish && pathname?.startsWith("/rehberler");
   const isHowItWorks = pathname === "/nasil-calisir" || pathname === "/en/how-it-works";
+  const isPrompt = pathname === "/prompt" || pathname === "/en/prompt";
+  const isHome = pathname === "/" || pathname === "/en";
 
   return (
     <nav className="bg-[#14171C] border-b border-[#2A2F38]">
@@ -31,8 +33,18 @@ export default function NavBar() {
             <Link
               href="/en"
               className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
-                !isEnglishGuides && !isHowItWorks
+                isHome
                   ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
+                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+              }`}
+            >
+              Ana Sayfa
+            </Link>
+            <Link
+              href="/en/prompt"
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
+                isPrompt
+                  ? "text-[#FF9F4A] bg-[#FF9F4A]/10 border-[#FF9F4A]/40"
                   : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
               }`}
             >
@@ -48,30 +60,29 @@ export default function NavBar() {
             >
               AI Guides
             </Link>
-            <Link
-              href="/en/how-it-works"
-              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
-                isHowItWorks
-                  ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
-                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
-              }`}
-            >
-              How It Works
-            </Link>
           </>
         ) : (
           <>
             <Link
               href="/"
               className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
-                !isGuides && !isHowItWorks
+                isHome
                   ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
                   : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
               }`}
             >
-              Prompt Oluşturucu
+              Ana Sayfa
             </Link>
-
+            <Link
+              href="/prompt"
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
+                isPrompt
+                  ? "text-[#FF9F4A] bg-[#FF9F4A]/10 border-[#FF9F4A]/40"
+                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
+              }`}
+            >
+              Prompt Oluştur
+            </Link>
             <Link
               href="/rehberler"
               className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
@@ -80,17 +91,7 @@ export default function NavBar() {
                   : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
               }`}
             >
-              Yapay Zeka Rehberleri
-            </Link>
-            <Link
-              href="/nasil-calisir"
-              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${
-                isHowItWorks
-                  ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
-                  : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
-              }`}
-            >
-              Nasıl Çalışır?
+              Rehberler
             </Link>
           </>
         )}

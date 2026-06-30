@@ -1,78 +1,97 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import {
-  Code2,
-  Image as ImageIcon,
-  BarChart3,
-  PenTool,
-  Search,
-  Video,
-  Music,
-  Sparkles,
   ArrowRight,
   Radio,
-  Copy,
-  Check,
-  Loader2,
-  Send,
-  BookOpen,
-} from "lucide-react";
-import { TASKS, getCandidates, getQuestions } from "@/lib/task-ai-matrix";
-import AiFirstFlow from "@/components/AiFirstFlow";
-import { usePromptHistory } from "@/lib/usePromptHistory";
-import PromptHistoryPanel from "@/components/PromptHistoryPanel";
-import { useEffect } from "react";
-
-const TOOL_GUIDE_SLUG = {
-  "claude-sonnet": "claude",
-  "gpt-4o": "chatgpt",
-  midjourney: "midjourney",
-  "gemini-pro": "gemini",
-  "nano-banana": "gemini",
-};
-
-const PRICING_LABELS = {
-  free: { label: "ücretsiz", className: "text-[#4ADEDE] border-[#4ADEDE]/30" },
-  freemium: { label: "freemium", className: "text-[#FACC15] border-[#FACC15]/30" },
-  paid: { label: "ücretli", className: "text-[#F87171] border-[#F87171]/30" },
-};
-
-const ICONS = {
-  Code2,
-  Image: ImageIcon,
-  BarChart3,
-  PenTool,
-  Search,
-  Video,
-  Music,
   Sparkles,
-};
+  BookOpen,
+  Zap,
+  Image as ImageIcon,
+  Code2,
+  PenTool,
+  ExternalLink,
+} from "lucide-react";
+
+const FEATURES = [
+  {
+    icon: Zap,
+    color: "#FF9F4A",
+    title: "Göreve Göre AI Seç",
+    desc: "8 görev kategorisi — kod, görsel, metin, analiz ve daha fazlası. Her görev için en uygun AI otomatik önerilir.",
+    href: "/prompt",
+  },
+  {
+    icon: Sparkles,
+    color: "#4ADEDE",
+    title: "Prompt Optimize Et",
+    desc: "Kaba fikrin profesyonel prompta dönüşür. Kopyala, hedef AI'a yapıştır, kullan.",
+    href: "/prompt",
+  },
+  {
+    icon: BookOpen,
+    color: "#A78BFA",
+    title: "Rehberlerle Öğren",
+    desc: "ChatGPT, Claude, Gemini, Midjourney için detaylı Türkçe rehberler. Güçlü/zayıf yönler, ipuçları, örnekler.",
+    href: "/rehberler",
+    badge: "Yeni rehberler",
+  },
+];
+
+const STEPS = [
+  {
+    number: "1",
+    color: "#FF9F4A",
+    title: "Yaz",
+    desc: "Ne yapmak istediğini kısaca anlat",
+  },
+  {
+    number: "2",
+    color: "#4ADEDE",
+    title: "Eşleş",
+    desc: "Sistem en uygun AI'ı seçer",
+  },
+  {
+    number: "3",
+    color: "#FF9F4A",
+    title: "Üret",
+    desc: "Optimize edilmiş prompt hazır",
+  },
+];
+
+const EXAMPLES = [
+  {
+    ai: "ChatGPT",
+    color: "#10A37F",
+    icon: PenTool,
+    input: "LinkedIn gönderisi yaz",
+    output: "Teknoloji sektöründeki 30-40 yaş arası profesyonellere yönelik, samimi ve ilham verici bir ton ile...",
+  },
+  {
+    ai: "Midjourney",
+    color: "#3B82F6",
+    icon: ImageIcon,
+    input: "Ürün fotoğrafı çek",
+    output: "Ceramic coffee cup on white marble surface, soft morning light, minimalist studio shot, --ar 1:1 --stylize 250",
+  },
+  {
+    ai: "Claude",
+    color: "#D97757",
+    icon: Code2,
+    input: "Kod hatası düzelt",
+    output: "Aşağıdaki Python kodunu adım adım incele, her hatayı açıkla ve düzeltilmiş versiyonu yorum satırlarıyla birlikte...",
+  },
+  {
+    ai: "Gemini",
+    color: "#8B5CF6",
+    icon: Sparkles,
+    input: "Rapor analiz et",
+    output: "Eklediğim PDF'i oku. Önce genel özet, sonra 3 kritik bulgu, ardından öneriler bölümü olacak şekilde yapılandır...",
+  },
+];
 
 export default function Home() {
-  const [heroInput, setHeroInput] = useState("");
-  const [selectedTaskId, setSelectedTaskId] = useState(null);
-  const [mode, setMode] = useState("task");
-  const [rawInput, setRawInput] = useState("");
-  const [answers, setAnswers] = useState({});
-  const [optimizedPrompt, setOptimizedPrompt] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [language, setLanguage] = useState("tr");
-  const [selectedToolKey, setSelectedToolKey] = useState(null);
-  const [freeText, setFreeText] = useState("");
-  const [isClassifying, setIsClassifying] = useState(false);
-  const [classifyError, setClassifyError] = useState("");
-  const [dynamicCandidates, setDynamicCandidates] = useState([]);
-  const [isFetchingTool, setIsFetchingTool] = useState(false);
-  const [feedbackText, setFeedbackText] = useState("");
-  const [feedbackCopied, setFeedbackCopied] = useState(false);
-  const [isSendingFeedback, setIsSendingFeedback] = useState(false);
-  const [feedbackSent, setFeedbackSent] = useState(false);
-
-  const { history, addToHistory, removeFromHistory, clearHistory } = usePromptHistory();
   const [promptCount, setPromptCount] = useState(null);
 
   useEffect(() => {
@@ -82,209 +101,45 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  const LANGUAGE_OPTIONS = [
-    { id: "tr", label: "türkçe" },
-    { id: "en", label: "ingilizce" },
-  ];
-
-  const selectedTask = TASKS.find((t) => t.id === selectedTaskId) ?? null;
-  const staticCandidates = selectedTaskId ? getCandidates(selectedTaskId) : [];
-  const candidates =
-    selectedTaskId === "other" && dynamicCandidates.length > 0
-      ? dynamicCandidates
-      : staticCandidates;
-  const primaryTool =
-    candidates.find((c) => c.key === selectedToolKey) ?? candidates[0] ?? null;
-  const questions = selectedTaskId ? getQuestions(selectedTaskId) : [];
-
-  function handleSelectTask(taskId, prefillText = "") {
-    setSelectedTaskId(taskId);
-    setSelectedToolKey(null);
-    setRawInput(prefillText);
-    setAnswers({});
-    setOptimizedPrompt("");
-    setError("");
-    setDynamicCandidates([]);
-  }
-
-  async function fetchDynamicTool(text) {
-    setIsFetchingTool(true);
-    try {
-      const response = await fetch("/api/recommend-tool", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawInput: text }),
-      });
-      const data = await response.json();
-      if (response.ok && data.candidates?.length > 0) {
-        setDynamicCandidates(
-          data.candidates.map((c, i) => ({
-            ...c,
-            color: c.color || "#FF9F4A",
-            recommended: i === 0,
-          }))
-        );
-      }
-      // Başarısız olursa dynamicCandidates boş kalır, statik "other" havuzuna
-      // (Claude/GPT-4o/Gemini) otomatik düşer — kullanıcı boş ekran görmez.
-    } catch (err) {
-      // sessizce statik havuza düş
-    } finally {
-      setIsFetchingTool(false);
-    }
-  }
-
-  async function handleFeedbackSend() {
-    if (!feedbackText.trim()) return;
-    setIsSendingFeedback(true);
-
-    try {
-      const response = await fetch("/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: feedbackText }),
-      });
-
-      if (!response.ok) throw new Error("Kaydedilemedi");
-
-      setFeedbackSent(true);
-      setFeedbackText("");
-      setTimeout(() => setFeedbackSent(false), 5000);
-    } catch (err) {
-      // Kayıt başarısız olursa, mail yoluna düş (eski yedek yöntem).
-      const subject = encodeURIComponent("Wrompt Geri Bildirim");
-      const body = encodeURIComponent(feedbackText);
-      window.location.href = `mailto:wrompt.info@gmail.com?subject=${subject}&body=${body}`;
-      navigator.clipboard?.writeText(feedbackText);
-      setFeedbackCopied(true);
-      setTimeout(() => setFeedbackCopied(false), 5000);
-    } finally {
-      setIsSendingFeedback(false);
-    }
-  }
-
-  async function handleClassify(overrideText) {
-    const text = overrideText ?? freeText;
-    const fromHero = overrideText !== undefined;
-    if (!text.trim()) return;
-    setIsClassifying(true);
-    setClassifyError("");
-
-    try {
-      const response = await fetch("/api/classify-task", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawInput: text }),
-      });
-
-      const data = await response.json();
-      const taskId = data.taskId || "other";
-      handleSelectTask(taskId, text);
-      setFreeText("");
-
-      if (taskId === "other") {
-        fetchDynamicTool(text);
-      }
-    } catch (err) {
-      if (fromHero) {
-        // Hero'dan gelince hata gösterme, sessizce "other" kategorisine düş
-        handleSelectTask("other", text);
-        setFreeText("");
-        fetchDynamicTool(text);
-      } else {
-        setClassifyError("Sınıflandırılamadı, lütfen hazır kategorilerden seç.");
-      }
-    } finally {
-      setIsClassifying(false);
-    }
-  }
-
-  function handleAnswerChange(questionId, value) {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
-  }
-
-  async function handleOptimize() {
-    if (!rawInput.trim()) {
-      setError("Önce ne yapmak istediğini kısaca yaz.");
-      return;
-    }
-    setError("");
-    setIsLoading(true);
-    setOptimizedPrompt("");
-
-    try {
-      const response = await fetch("/api/optimize-prompt", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rawInput,
-          taskLabel: selectedTask?.label,
-          targetAI: primaryTool?.name,
-          answers,
-          language,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Bir hata oluştu.");
-      }
-
-      setOptimizedPrompt(data.optimizedPrompt);
-      addToHistory({
-        input: rawInput.trim(),
-        result: data.optimizedPrompt,
-        targetAI: primaryTool?.name,
-        taskLabel: selectedTask?.label,
-      });
-    } catch (err) {
-      setError(err.message || "Prompt optimize edilemedi, tekrar dene.");
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(optimizedPrompt);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
   return (
-    <main className="min-h-screen bg-[#14171C] text-[#ECEEF1] selection:bg-[#FF9F4A]/30">
-      <style>{`
-        @keyframes signalPulse {
-          0% { transform: translateY(-8px); opacity: 0; }
-          15% { opacity: 1; }
-          85% { opacity: 1; }
-          100% { transform: translateY(8px); opacity: 0; }
-        }
-        .signal-dot { animation: signalPulse 1.4s ease-in-out infinite; }
-        @keyframes fadeRise {
-          from { opacity: 0; transform: translateY(6px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-rise { animation: fadeRise 0.35s ease-out forwards; }
-      `}</style>
+    <main className="min-h-screen bg-[#14171C] text-[#ECEEF1]">
 
-      {/* ---------- HERO ---------- */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 sm:pb-12">
-        <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-[#8B92A0] mb-5 sm:mb-6">
-          <Radio size={14} className="text-[#FF9F4A]" />
+      {/* ── HERO ── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-16 sm:pt-24 pb-16 sm:pb-20 text-center">
+        <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-[0.2em] text-[#8B92A0] mb-6 bg-[#1C2128] border border-[#2A2F38] rounded-full px-4 py-2">
+          <Radio size={12} className="text-[#FF9F4A]" />
           <span>AI Guide & Prompt Master</span>
         </div>
-        <h1 className="font-display text-3xl sm:text-4xl md:text-6xl font-semibold leading-[1.1] md:leading-[1.05] max-w-3xl">
-          Doğru yapay zekayı seç,{" "}
-          <span className="text-[#FF9F4A]">prompt'unu optimize et.</span>
+
+        <h1 className="font-display text-4xl sm:text-5xl md:text-7xl font-semibold leading-[1.05] mb-6 max-w-4xl mx-auto">
+          Yapay zekayı doğru kullan,{" "}
+          <span className="text-[#FF9F4A]">sonuçları hisset.</span>
         </h1>
-        <p className="mt-4 sm:mt-5 text-base sm:text-lg text-[#8B92A0] max-w-xl">
-          Görevini seç. Sistem sana en uygun AI aracını ve onun için
-          özel hazırlanmış altın ipuçlarını canlı olarak eşleştirsin.
+
+        <p className="text-lg sm:text-xl text-[#8B92A0] max-w-2xl mx-auto mb-10 leading-relaxed">
+          Hangi AI sana uygun? Nasıl prompt yazılır?
+          Wrompt ile saniyeler içinde öğren ve üret.
         </p>
 
+        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
+          <Link
+            href="/prompt"
+            className="inline-flex items-center gap-2 text-sm font-semibold bg-[#FF9F4A] text-[#14171C] rounded-xl px-7 py-3.5 hover:bg-[#FFB374] transition-colors"
+          >
+            Prompt Oluştur
+            <ArrowRight size={16} />
+          </Link>
+          <Link
+            href="/rehberler"
+            className="inline-flex items-center gap-2 text-sm font-medium text-[#8B92A0] border border-[#2A2F38] rounded-xl px-7 py-3.5 hover:bg-[#1C2128] hover:text-[#ECEEF1] transition-colors"
+          >
+            <BookOpen size={15} />
+            Rehberlere Bak
+          </Link>
+        </div>
+
         {promptCount !== null && (
-          <div className="mt-6 inline-flex items-center gap-2 text-xs font-mono text-[#8B92A0] bg-[#1C2128] border border-[#2A2F38] rounded-full px-4 py-2">
+          <div className="inline-flex items-center gap-2 text-xs font-mono text-[#8B92A0]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#4ADEDE] animate-pulse inline-block" />
             <span>
               <span className="text-[#ECEEF1] font-semibold">{promptCount.toLocaleString("tr-TR")}+</span>
@@ -292,475 +147,143 @@ export default function Home() {
             </span>
           </div>
         )}
+      </section>
 
-        {/* Hızlı başlangıç kutusu */}
-        <div className="mt-8 max-w-2xl">
-          <div className="flex gap-3 items-start">
-            <textarea
-              value={heroInput}
-              onChange={(e) => setHeroInput(e.target.value.slice(0, 600))}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                  if (heroInput.trim()) {
-                    const text = heroInput;
-                    setHeroInput("");
-                    handleClassify(text);
-                    setTimeout(() => {
-                      document.getElementById("ai-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }, 400);
-                  }
-                }
-              }}
-              placeholder="Ne yapmak istiyorsun? Yaz, gerisini halledelim..."
-              rows={2}
-              className="flex-1 bg-[#1C2128] border border-[#2A2F38] rounded-xl px-4 py-3 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
-            />
-            <button
-              onClick={() => {
-                if (!heroInput.trim()) return;
-                const text = heroInput;
-                setHeroInput("");
-                handleClassify(text);
-                setTimeout(() => {
-                  document.getElementById("ai-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }, 400);
-              }}
-              disabled={!heroInput.trim()}
-              className="shrink-0 flex items-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-xl px-5 py-3 hover:bg-[#FFB374] transition-colors disabled:opacity-40"
-            >
-              Devam
-              <ArrowRight size={16} />
-            </button>
-          </div>
-          <p className="text-xs text-[#8B92A0]/50 mt-2">
-            Ya da aşağıdan görev ve AI seçimini kendin yap.
-          </p>
+      {/* ── ÖZELLİKLER ── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+        <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-6 text-center">
+          Neden Wrompt?
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {FEATURES.map((f) => {
+            const Icon = f.icon;
+            return (
+              <Link
+                key={f.title}
+                href={f.href}
+                className="group bg-[#1C2128] border border-[#2A2F38] rounded-xl p-6 hover:border-[#3A3F48] transition-colors"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className="w-10 h-10 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: f.color + "18", border: `1px solid ${f.color}35` }}
+                  >
+                    <Icon size={18} style={{ color: f.color }} />
+                  </div>
+                  {f.badge && (
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#A78BFA] border border-[#A78BFA]/30 rounded-full px-2 py-0.5">
+                      {f.badge}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-semibold text-[#ECEEF1] mb-2">{f.title}</p>
+                <p className="text-xs text-[#8B92A0] leading-relaxed">{f.desc}</p>
+              </Link>
+            );
+          })}
         </div>
       </section>
 
-      {/* ---------- SEÇİM KONSOLU ---------- */}
-      <section id="konsol" className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
-        {/* Mod geçişi */}
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setMode("task")}
-            className={`text-xs font-medium rounded-full px-4 py-2 border transition-colors ${
-              mode === "task"
-                ? "text-[#FF9F4A] bg-[#FF9F4A]/10 border-[#FF9F4A]/40"
-                : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
-            }`}
-          >
-            Göreve göre
-          </button>
-          <button
-            onClick={() => setMode("ai")}
-            className={`text-xs font-medium rounded-full px-4 py-2 border transition-colors ${
-              mode === "ai"
-                ? "text-[#4ADEDE] bg-[#4ADEDE]/10 border-[#4ADEDE]/40"
-                : "text-[#8B92A0] bg-transparent border-[#2A2F38] hover:bg-[#1C2128]"
-            }`}
-          >
-            AI'ya göre
-          </button>
-        </div>
-
-        {mode === "ai" ? (
-          <AiFirstFlow />
-        ) : (
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_64px_1fr] gap-3 md:gap-0 items-stretch">
-          {/* SOL: Görev Listesi */}
-          <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl md:rounded-l-xl md:rounded-r-none p-2">
-            <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] px-3 pt-3 pb-2">
-              01 — görevini seç
-            </p>
-
-            {/* Serbest metin girişi */}
-            <div className="px-3 pb-3">
-              <label className="text-xs text-[#8B92A0] mb-1.5 block">
-                ya da görevini kendi cümlenle yaz
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={freeText}
-                  onChange={(e) => setFreeText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleClassify()}
-                  placeholder="örn: bana kısa bir oyun senaryosu yaz"
-                  maxLength={600}
-                  className="flex-1 bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
-                />
-
-                <button
-                  onClick={() => handleClassify()}
-                  disabled={isClassifying || !freeText.trim()}
-                  className="shrink-0 flex items-center justify-center w-10 rounded-lg bg-[#FF9F4A] text-[#14171C] hover:bg-[#FFB374] transition-colors disabled:opacity-50"
-                >
-                  {isClassifying ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <ArrowRight size={16} />
-                  )}
-                </button>
+      {/* ── NASIL ÇALIŞIR ── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+        <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-6 text-center">
+          Nasıl çalışır?
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {STEPS.map((step, i) => (
+            <div key={step.number} className="relative bg-[#1C2128] border border-[#2A2F38] rounded-xl p-6">
+              <div
+                className="text-5xl font-black mb-4 leading-none"
+                style={{ color: step.color + "30" }}
+              >
+                {step.number}
               </div>
-              <div className="flex justify-end mt-1">
-                <span className={`text-[10px] font-mono ${freeText.length >= 580 ? "text-red-400" : freeText.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
-                  {freeText.length}/600
-                </span>
-              </div>
-              {classifyError && (
-                <p className="text-xs text-red-400 mt-1.5">{classifyError}</p>
+              <p className="text-lg font-bold text-[#ECEEF1] mb-1" style={{ color: step.color }}>
+                {step.title}
+              </p>
+              <p className="text-sm text-[#8B92A0]">{step.desc}</p>
+              {i < STEPS.length - 1 && (
+                <div className="hidden sm:block absolute -right-2 top-1/2 -translate-y-1/2 z-10 text-[#2A2F38]">
+                  <ArrowRight size={16} />
+                </div>
               )}
-              <div className="flex items-center gap-2 mt-4">
-                <div className="flex-1 h-px bg-[#2A2F38]" />
-                <span className="text-[10px] text-[#8B92A0] font-mono uppercase tracking-wider">
-                  veya hazırdan seç
-                </span>
-                <div className="flex-1 h-px bg-[#2A2F38]" />
-              </div>
             </div>
-
-            <div className="flex flex-col gap-1">
-              {TASKS.filter((task) => !task.hidden).map((task) => {
-                const Icon = ICONS[task.icon];
-                const isActive = selectedTaskId === task.id;
-                return (
-                  <button
-                    key={task.id}
-                    onClick={() => handleSelectTask(task.id)}
-                    className={`flex items-center gap-3 text-left px-3 py-3 rounded-lg transition-colors ${
-                      isActive
-                        ? "bg-[#FF9F4A]/10 border border-[#FF9F4A]/40"
-                        : "border border-transparent hover:bg-[#252B33]"
-                    }`}
-                  >
-                    <Icon
-                      size={18}
-                      className={isActive ? "text-[#FF9F4A]" : "text-[#8B92A0]"}
-                    />
-                    <div>
-                      <p className="text-sm font-medium text-[#ECEEF1]/90">
-                        {task.label}
-                      </p>
-                      <p className="text-xs text-[#8B92A0] mt-0.5">
-                        {task.description}
-                      </p>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ORTA: Sinyal Hattı */}
-          <div className="hidden md:flex flex-col items-center justify-center bg-[#1C2128]/40 border-y border-[#2A2F38] relative">
-            <div className="w-px h-full bg-[#2A2F38] absolute" />
-            {selectedTaskId && (
-              <div className="relative z-10 w-2 h-2 rounded-full bg-[#4ADEDE] signal-dot" />
-            )}
-          </div>
-
-          {/* SAĞ: AI Önerisi + Soru Formu + Sonuç */}
-          <div id="ai-panel" className="bg-[#1C2128] border border-[#2A2F38] rounded-xl md:rounded-r-xl md:rounded-l-none p-2 flex flex-col">
-            <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] px-3 pt-3 pb-2">
-              02 — ai seç
-            </p>
-
-            {!primaryTool && !isFetchingTool && (
-              <div className="flex-1 flex items-center justify-center px-6 py-12 text-center">
-                <p className="text-sm text-[#8B92A0]">
-                  Soldan bir görev seç, eşleşmeler burada belirecek.
-                </p>
-              </div>
-            )}
-
-            {isFetchingTool && (
-              <div className="flex-1 flex items-center justify-center gap-2 px-6 py-12 text-center text-[#8B92A0]">
-                <Loader2 size={16} className="animate-spin" />
-                <p className="text-sm">güncel AI'lar aranıyor...</p>
-              </div>
-            )}
-
-            {primaryTool && !isFetchingTool && (
-              <div className="px-3 pb-3 fade-rise" key={selectedTaskId}>
-                {/* Seçilebilir AI kartları */}
-                <div className="flex flex-col gap-1.5 mb-3">
-                  {candidates.map((tool) => {
-                    const isSelected = tool.key === primaryTool.key;
-                    const pricing =
-                      PRICING_LABELS[tool.pricing] || PRICING_LABELS.freemium;
-                    return (
-                      <button
-                        key={tool.key}
-                        onClick={() => setSelectedToolKey(tool.key)}
-                        className={`flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1.5 text-left px-3 py-2 rounded-lg border transition-colors ${
-                          isSelected
-                            ? "bg-[#14171C] border-[#FF9F4A]/40"
-                            : "border-[#2A2F38] hover:bg-[#252B33]"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span
-                            className="text-sm font-medium"
-                            style={{ color: tool.color }}
-                          >
-                            {tool.name}
-                          </span>
-                          {tool.recommended && (
-                            <span className="text-[9px] font-mono uppercase tracking-wider text-[#4ADEDE] border border-[#4ADEDE]/30 rounded-full px-1.5 py-0.5 whitespace-nowrap">
-                              en iyi eşleşme
-                            </span>
-                          )}
-                        </div>
-                        <span
-                          className={`text-[10px] font-mono uppercase tracking-wider border rounded-full px-2 py-0.5 whitespace-nowrap ${pricing.className}`}
-                        >
-                          {pricing.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Seçili AI'nin detay kartı */}
-                <div className="rounded-lg border border-[#2A2F38] bg-[#14171C] p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p
-                        className="text-base font-semibold"
-                        style={{ color: primaryTool.color }}
-                      >
-                        {primaryTool.name}
-                      </p>
-                      <p className="text-xs text-[#8B92A0] mt-0.5">
-                        {primaryTool.vendor} · {primaryTool.priceNote}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-[#ECEEF1]/80 mt-3 leading-relaxed">
-                    {primaryTool.strengths}
-                  </p>
-                  <div className="mt-4 pt-3 border-t border-[#2A2F38]">
-                    <p className="text-xs font-mono uppercase tracking-wider text-[#FF9F4A] mb-1">
-                      altın ipucu
-                    </p>
-                    <p className="text-sm text-[#ECEEF1]/80 leading-relaxed">
-                      {primaryTool.goldenTip}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Kaba istek + dinamik sorular */}
-                <div className="mt-4 space-y-3">
-                  <div>
-                    <label className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-1.5 block">
-                      prompt dili
-                    </label>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {LANGUAGE_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.id}
-                          onClick={() => setLanguage(opt.id)}
-                          className={`text-xs font-mono uppercase tracking-wider px-3 py-1.5 rounded-md border transition-colors ${
-                            language === opt.id
-                              ? "bg-[#FF9F4A]/10 border-[#FF9F4A]/40 text-[#FF9F4A]"
-                              : "border-[#2A2F38] text-[#8B92A0] hover:bg-[#252B33]"
-                          }`}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-1.5 block">
-                      ne yapmak istiyorsun?
-                    </label>
-                    <textarea
-                      value={rawInput}
-                      onChange={(e) => setRawInput(e.target.value)}
-                      placeholder="örn: bir timsah görseli istiyorum"
-                      rows={2}
-                      maxLength={600}
-                      className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
-                    />
-                    <div className="flex justify-end mt-1">
-                      <span className={`text-[10px] font-mono ${rawInput.length >= 580 ? "text-red-400" : rawInput.length >= 480 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
-                        {rawInput.length}/600
-                      </span>
-                    </div>
-                  </div>
-
-                  {questions.map((q) => (
-                    <div key={q.id}>
-                      <label className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-1.5 block">
-                        {q.label}
-                      </label>
-                      <input
-                        type="text"
-                        value={answers[q.id] || ""}
-                        onChange={(e) =>
-                          handleAnswerChange(q.id, e.target.value)
-                        }
-                        placeholder={q.placeholder}
-                        maxLength={200}
-                        className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50"
-                      />
-                      <div className="flex justify-end mt-0.5">
-                        <span className={`text-[10px] font-mono ${(answers[q.id] || "").length >= 190 ? "text-red-400" : (answers[q.id] || "").length >= 160 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
-                          {(answers[q.id] || "").length}/200
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-
-                  {error && (
-                    <p className="text-xs text-red-400">{error}</p>
-                  )}
-
-                  <button
-                    onClick={handleOptimize}
-                    disabled={isLoading}
-                    className="mt-1 w-full flex items-center justify-center gap-2 text-sm font-medium bg-[#FF9F4A] text-[#14171C] rounded-lg py-2.5 hover:bg-[#FFB374] transition-colors disabled:opacity-60"
-                  >
-                    {isLoading ? (
-                      <>
-                        <Loader2 size={16} className="animate-spin" />
-                        optimize ediliyor...
-                      </>
-                    ) : (
-                      <>
-                        Prompt'umu optimize et
-                        <ArrowRight size={16} />
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Sonuç */}
-                {optimizedPrompt && (
-                  <>
-                    <div className="mt-4 rounded-lg border border-[#4ADEDE]/30 bg-[#14171C] p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-xs font-mono uppercase tracking-wider text-[#4ADEDE]">
-                          optimize edilmiş prompt
-                        </p>
-                        <button
-                          onClick={handleCopy}
-                          className="flex items-center gap-1.5 text-xs text-[#8B92A0] hover:text-[#ECEEF1] transition-colors"
-                        >
-                          {copied ? (
-                            <>
-                              <Check size={14} className="text-[#4ADEDE]" />
-                              kopyalandı
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={14} />
-                              kopyala
-                            </>
-                          )}
-                        </button>
-                      </div>
-                      <p className="text-sm text-[#ECEEF1]/90 leading-relaxed whitespace-pre-wrap">
-                        {optimizedPrompt}
-                      </p>
-
-                      {TOOL_GUIDE_SLUG[primaryTool?.key] && (
-                        <div className="mt-4 pt-3 border-t border-[#2A2F38]">
-                          <p className="text-[10px] font-mono uppercase tracking-wider text-[#8B92A0] mb-2">
-                            Daha fazla öğren
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            <Link
-                              href={`/rehberler/${TOOL_GUIDE_SLUG[primaryTool.key]}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#4ADEDE] border border-[#4ADEDE]/30 bg-[#4ADEDE]/5 rounded-full px-3.5 py-1.5 hover:bg-[#4ADEDE]/15 transition-colors"
-                            >
-                              <BookOpen size={12} />
-                              Türkçe {primaryTool.name} Rehberi
-                            </Link>
-                            <Link
-                              href={`/en/guides/${TOOL_GUIDE_SLUG[primaryTool.key]}`}
-                              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#8B92A0] border border-[#2A2F38] bg-transparent rounded-full px-3.5 py-1.5 hover:bg-[#1C2128] hover:text-[#ECEEF1] transition-colors"
-                            >
-                              <BookOpen size={12} />
-                              English Guide
-                            </Link>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                  </>
-                )}
-              </div>
-            )}
-          </div>
+          ))}
         </div>
-        )}
-
-        <PromptHistoryPanel
-          history={history}
-          onRemove={removeFromHistory}
-          onClear={clearHistory}
-          lang="tr"
-        />
-      </section>
-
-      {/* ---------- GERİ BİLDİRİM ---------- */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16 sm:pb-24">
-        <div className="bg-[#1C2128] border border-[#2A2F38] rounded-xl p-5 sm:p-6 max-w-xl mx-auto text-center">
-          <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-2">
-            geri bildirim
-          </p>
-          <p className="text-sm text-[#ECEEF1]/80 mb-4">
-            Bir şey çalışmadı mı, yoksa eklenmesini istediğin bir şey mi var?
-            Bize yaz, dinliyoruz.
-          </p>
-          <textarea
-            value={feedbackText}
-            onChange={(e) => setFeedbackText(e.target.value)}
-            placeholder="görüşünü buraya yaz..."
-            rows={3}
-            maxLength={500}
-            className="w-full bg-[#14171C] border border-[#2A2F38] rounded-lg px-3 py-2 text-sm text-[#ECEEF1] placeholder:text-[#8B92A0]/60 focus:outline-none focus:border-[#FF9F4A]/50 resize-none"
-          />
-          <div className="flex justify-end mt-1">
-            <span className={`text-[10px] font-mono ${feedbackText.length >= 490 ? "text-red-400" : feedbackText.length >= 400 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
-              {feedbackText.length}/500
-            </span>
-          </div>
-          <button
-            onClick={handleFeedbackSend}
-            disabled={!feedbackText.trim() || isSendingFeedback}
-            className="mt-3 flex items-center justify-center gap-2 mx-auto text-sm font-medium bg-transparent border border-[#4ADEDE]/40 text-[#4ADEDE] rounded-lg px-5 py-2 hover:bg-[#4ADEDE]/10 transition-colors disabled:opacity-40"
+        <div className="text-center mt-8">
+          <Link
+            href="/nasil-calisir"
+            className="inline-flex items-center gap-1.5 text-xs text-[#8B92A0] hover:text-[#ECEEF1] transition-colors"
           >
-            {isSendingFeedback ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                gönderiliyor...
-              </>
-            ) : (
-              <>
-                Gönder
-                <Send size={14} />
-              </>
-            )}
-          </button>
-          {feedbackSent && (
-            <p className="text-xs text-[#4ADEDE] mt-3">
-              Teşekkürler! Geri bildirimin kaydedildi 🙌
-            </p>
-          )}
-          {feedbackCopied && (
-            <p className="text-xs text-[#4ADEDE] mt-3">
-              Metin kopyalandı! Mail uygulaman açılmadıysa, doğrudan{" "}
-              <span className="font-medium">wrompt.info@gmail.com</span>'a
-              yapıştırıp gönderebilirsin.
-            </p>
-          )}
+            Detaylı açıklama için
+            <ExternalLink size={12} />
+          </Link>
         </div>
       </section>
+
+      {/* ── ÖRNEK PROMPTLAR ── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+        <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-6 text-center">
+          Ne üretebilirsin?
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {EXAMPLES.map((ex) => {
+            const Icon = ex.icon;
+            return (
+              <div key={ex.ai} className="bg-[#1C2128] border border-[#2A2F38] rounded-xl p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div
+                    className="w-7 h-7 rounded-md flex items-center justify-center"
+                    style={{ backgroundColor: ex.color + "20" }}
+                  >
+                    <Icon size={13} style={{ color: ex.color }} />
+                  </div>
+                  <span className="text-xs font-semibold" style={{ color: ex.color }}>
+                    {ex.ai}
+                  </span>
+                  <span className="text-[10px] text-[#8B92A0] ml-auto">girdi →</span>
+                  <span className="text-[10px] text-[#ECEEF1]/60 italic">"{ex.input}"</span>
+                </div>
+                <div className="bg-[#14171C] border border-[#2A2F38] rounded-lg p-3">
+                  <p className="text-[10px] font-mono uppercase tracking-wider text-[#4ADEDE] mb-1.5">optimize edilmiş prompt</p>
+                  <p className="text-xs text-[#ECEEF1]/75 leading-relaxed line-clamp-2">{ex.output}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="text-center mt-8">
+          <Link
+            href="/prompt"
+            className="inline-flex items-center gap-2 text-sm font-semibold bg-[#FF9F4A] text-[#14171C] rounded-xl px-7 py-3.5 hover:bg-[#FFB374] transition-colors"
+          >
+            Kendi promptunu oluştur
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
+
+      {/* ── FOOTER ÜSTÜ CTA ── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-20">
+        <div className="bg-[#1C2128] border border-[#2A2F38] rounded-2xl p-8 sm:p-12 text-center">
+          <p className="text-xs font-mono uppercase tracking-wider text-[#8B92A0] mb-4">Ücretsiz · Türkçe</p>
+          <h2 className="font-display text-2xl sm:text-4xl font-semibold mb-4">
+            AI'dan daha iyi sonuç almaya
+            <span className="text-[#FF9F4A]"> hemen başla.</span>
+          </h2>
+          <p className="text-[#8B92A0] mb-8 max-w-md mx-auto">
+            Kayıt gerekmez. Kredi kartı yok. Sadece yaz ve üret.
+          </p>
+          <Link
+            href="/prompt"
+            className="inline-flex items-center gap-2 text-sm font-semibold bg-[#FF9F4A] text-[#14171C] rounded-xl px-8 py-4 hover:bg-[#FFB374] transition-colors"
+          >
+            Başla — ücretsiz
+            <ArrowRight size={16} />
+          </Link>
+        </div>
+      </section>
+
     </main>
   );
 }
