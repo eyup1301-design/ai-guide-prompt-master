@@ -93,9 +93,14 @@ export default function JobFlow() {
             </button>
           </div>
           {error && <p className="text-xs text-red-400 mt-2">{error}</p>}
-          <p className="text-xs text-[#8B92A0]/50 mt-2">
-            Sistemi serbest yazabilirsin — mesleğini, sektörünü veya ne yaptığını anlat.
-          </p>
+          <div className="flex items-center justify-between mt-1.5">
+            <p className="text-xs text-[#8B92A0]/50">
+              Serbest yazabilirsin — mesleğini, sektörünü veya ne yaptığını anlat.
+            </p>
+            <span className={`text-[10px] font-mono shrink-0 ml-2 ${jobInput.length >= 190 ? "text-red-400" : jobInput.length >= 160 ? "text-[#FACC15]" : "text-[#8B92A0]/40"}`}>
+              {jobInput.length}/200
+            </span>
+          </div>
         </div>
       )}
 
