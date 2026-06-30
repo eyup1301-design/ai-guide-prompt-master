@@ -33,8 +33,8 @@ export default function MidjourneyRehberi() {
         </Link>
 
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-9 h-9 rounded-lg bg-[#3B82F6] flex items-center justify-center overflow-hidden">
-            <img src="https://www.midjourney.com/favicon.ico" alt="" className="w-6 h-6" />
+          <div className="w-9 h-9 rounded-lg bg-[#3B82F6] flex items-center justify-center">
+            <span className="text-white text-xs font-bold">MJ</span>
           </div>
           <h1 className="font-display text-2xl sm:text-3xl font-semibold">Midjourney Rehberi</h1>
         </div>
